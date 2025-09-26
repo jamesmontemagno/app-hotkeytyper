@@ -45,6 +45,35 @@ public partial class Form1 : Form
         
         // Register CTRL+SHIFT+1 as global hotkey
         RegisterHotKey(this.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, (int)Keys.D1);
+        
+        // Update UI after form is fully loaded
+        this.Load += Form1_Load;
+    }
+    
+    private void Form1_Load(object? sender, EventArgs e)
+    {
+        UpdateUIFromSettings();
+    }
+    
+    private void UpdateUIFromSettings()
+    {
+        // Update text box with loaded predefined text
+        if (txtPredefinedText != null)
+        {
+            txtPredefinedText.Text = predefinedText;
+        }
+        
+        // Update typing speed slider with loaded value
+        if (sliderTypingSpeed != null)
+        {
+            sliderTypingSpeed.Value = typingSpeed;
+        }
+        
+        // Update speed indicator label
+        if (lblSpeedIndicator != null)
+        {
+            lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
+        }
     }
     
     private void LoadSettings()

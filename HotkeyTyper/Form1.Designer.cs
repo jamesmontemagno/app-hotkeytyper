@@ -25,7 +25,7 @@ partial class Form1
         
         // Form properties
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(500, 340);
+        ClientSize = new Size(500, 380);
         Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
         StartPosition = FormStartPosition.CenterScreen;
         MaximizeBox = false;
@@ -50,9 +50,9 @@ partial class Form1
         var txtPredefinedText = new TextBox
         {
             Name = "txtPredefinedText",
-            Text = predefinedText,
+            Text = predefinedText, // This will show the loaded text
             Location = new Point(20, 80),
-            Size = new Size(460, 100),
+            Size = new Size(460, 90),
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
             Font = new Font("Segoe UI", 9F)
@@ -62,7 +62,7 @@ partial class Form1
         var lblTypingSpeed = new Label
         {
             Text = "Typing Speed:",
-            Location = new Point(20, 190),
+            Location = new Point(20, 185),
             Size = new Size(80, 20),
             Font = new Font("Segoe UI", 9F)
         };
@@ -71,7 +71,7 @@ partial class Form1
         var sliderTypingSpeed = new TrackBar
         {
             Name = "sliderTypingSpeed",
-            Location = new Point(105, 185),
+            Location = new Point(105, 180),
             Size = new Size(200, 45),
             Minimum = 1,
             Maximum = 10,
@@ -86,7 +86,7 @@ partial class Form1
         {
             Name = "lblSpeedIndicator",
             Text = GetSpeedText(typingSpeed),
-            Location = new Point(315, 190),
+            Location = new Point(315, 185),
             Size = new Size(100, 20),
             Font = new Font("Segoe UI", 9F, FontStyle.Italic)
         };
@@ -95,7 +95,7 @@ partial class Form1
         var btnUpdate = new Button
         {
             Text = "Update Text",
-            Location = new Point(20, 220),
+            Location = new Point(20, 240),
             Size = new Size(100, 30),
             Font = new Font("Segoe UI", 9F)
         };
@@ -105,8 +105,8 @@ partial class Form1
         var btnMinimize = new Button
         {
             Text = "Minimize to Tray",
-            Location = new Point(20, 260),
-            Size = new Size(100, 30),
+            Location = new Point(20, 280),
+            Size = new Size(120, 30),
             Font = new Font("Segoe UI", 9F)
         };
         btnMinimize.Click += BtnMinimize_Click;
@@ -115,8 +115,8 @@ partial class Form1
         var lblStatus = new Label
         {
             Text = "Status: Hotkey CTRL+SHIFT+1 is active",
-            Location = new Point(140, 227),
-            Size = new Size(300, 20),
+            Location = new Point(150, 247),
+            Size = new Size(320, 20),
             Font = new Font("Segoe UI", 9F),
             ForeColor = Color.Green
         };

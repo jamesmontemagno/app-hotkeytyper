@@ -164,8 +164,8 @@ public partial class Form1 : Form
     {
         try
         {
-            // Small delay to ensure the target window is ready
-            await Task.Delay(100);
+            // Longer delay to ensure the target window is ready and hotkey is fully processed
+            await Task.Delay(200);
             
             // Calculate delay based on typing speed (1=slowest, 10=fastest)
             // Speed 1: 200-300ms, Speed 5: 50-150ms, Speed 10: 10-50ms
@@ -173,12 +173,15 @@ public partial class Form1 : Form
             int variation = Math.Max(10, baseDelay / 3); // Variation amount
             
             Random random = new Random();
+            
+            // Send each character individually to ensure none are lost
             foreach (char c in predefinedText)
             {
+                // Use SendWait to ensure each character is fully processed before the next
                 SendKeys.SendWait(c.ToString());
-                // Random delay based on typing speed setting
-                int delay = random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation);
-                await Task.Delay(delay);
+                
+                // Add a small additional delay after each character to ensure it's processed
+                await Task.Delay(Math.Max(20, random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation)));
             }
         }
         catch (Exception ex)

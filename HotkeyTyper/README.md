@@ -14,7 +14,7 @@ A simple .NET Windows Forms application that allows you to type predefined text 
 ## Requirements
 
 - Windows 10 or later
-- .NET 10.0 or later
+- .NET 9.0 or later
 
 ## Installation & Usage
 

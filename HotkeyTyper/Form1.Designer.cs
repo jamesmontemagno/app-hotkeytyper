@@ -85,7 +85,7 @@ partial class Form1
         var lblSpeedIndicator = new Label
         {
             Name = "lblSpeedIndicator",
-            Text = GetSpeedText(typingSpeed),
+            Text = "Normal", // Default value, will be updated after load
             Location = new Point(315, 230),
             Size = new Size(100, 20),
             Font = new Font("Segoe UI", 9F, FontStyle.Italic)

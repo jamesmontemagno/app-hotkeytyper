@@ -45,35 +45,6 @@ public partial class Form1 : Form
         
         // Register CTRL+SHIFT+1 as global hotkey
         RegisterHotKey(this.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, (int)Keys.D1);
-        
-        // Update UI after form is fully loaded
-        this.Load += Form1_Load;
-    }
-    
-    private void Form1_Load(object? sender, EventArgs e)
-    {
-        UpdateUIFromSettings();
-    }
-    
-    private void UpdateUIFromSettings()
-    {
-        // Update text box with loaded predefined text
-        if (txtPredefinedText != null)
-        {
-            txtPredefinedText.Text = predefinedText;
-        }
-        
-        // Update typing speed slider with loaded value
-        if (sliderTypingSpeed != null)
-        {
-            sliderTypingSpeed.Value = typingSpeed;
-        }
-        
-        // Update speed indicator label
-        if (lblSpeedIndicator != null)
-        {
-            lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
-        }
     }
     
     private void LoadSettings()
@@ -164,8 +135,8 @@ public partial class Form1 : Form
     {
         try
         {
-            // Longer delay to ensure the target window is ready and hotkey is fully processed
-            await Task.Delay(200);
+            // Small delay to ensure the target window is ready
+            await Task.Delay(100);
             
             // Calculate delay based on typing speed (1=slowest, 10=fastest)
             // Speed 1: 200-300ms, Speed 5: 50-150ms, Speed 10: 10-50ms
@@ -173,15 +144,12 @@ public partial class Form1 : Form
             int variation = Math.Max(10, baseDelay / 3); // Variation amount
             
             Random random = new Random();
-            
-            // Send each character individually to ensure none are lost
             foreach (char c in predefinedText)
             {
-                // Use SendWait to ensure each character is fully processed before the next
                 SendKeys.SendWait(c.ToString());
-                
-                // Add a small additional delay after each character to ensure it's processed
-                await Task.Delay(Math.Max(20, random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation)));
+                // Random delay based on typing speed setting
+                int delay = random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation);
+                await Task.Delay(delay);
             }
         }
         catch (Exception ex)
@@ -205,25 +173,8 @@ public partial class Form1 : Form
         if (sender is TrackBar slider)
         {
             typingSpeed = slider.Value;
-            if (lblSpeedIndicator != null)
-            {
-                lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
-            }
             SaveSettings();
         }
-    }
-    
-    private string GetSpeedText(int speed)
-    {
-        return speed switch
-        {
-            1 or 2 => "Very Slow",
-            3 or 4 => "Slow", 
-            5 or 6 => "Normal",
-            7 or 8 => "Fast",
-            9 or 10 => "Very Fast",
-            _ => "Normal"
-        };
     }
     
     private void BtnMinimize_Click(object sender, EventArgs e)

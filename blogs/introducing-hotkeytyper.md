@@ -26,7 +26,7 @@ Press `CTRL+SHIFT+1` from any Windows application and your predefined text will 
 The app doesn't just paste text instantly - it types each character individually with realistic delays (50-150ms between characters) and random variations to simulate natural human typing speed. This makes it perfect for live demos where you want the typing to look authentic.
 
 ### ⚡ Adjustable Typing Speed
-Choose from 10 different speed settings, from "Very Slow" (great for following along tutorials) to "Very Fast" (for when you need to get through text quickly).
+Choose from 10 different speed settings, from "Very Slow" (great for following along with tutorials) to "Very Fast" (for when you need to get through text quickly).
 
 ### 💾 Persistent Settings
 Your predefined text and preferences are automatically saved to a `settings.json` file and restored when you restart the application.

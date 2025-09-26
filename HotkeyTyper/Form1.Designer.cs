@@ -42,7 +42,8 @@ partial class Form1
         {
             Text = "Configure your predefined text below.\nPress CTRL+SHIFT+1 anywhere to type it:",
             Location = new Point(20, 20),
-            Size = new Size(460, 40),
+            // Increased height to ensure second line isn't clipped on various DPI scales
+            Size = new Size(460, 55),
             Font = new Font("Segoe UI", 10F, FontStyle.Regular)
         };
         
@@ -51,7 +52,8 @@ partial class Form1
         {
             Name = "txtPredefinedText",
             Text = predefinedText, // This will show the loaded text
-            Location = new Point(20, 80),
+            // Shifted down slightly to keep spacing after taller instructions label
+            Location = new Point(20, 85),
             Size = new Size(460, 135), // Increased by 50% from 90 to 135
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
@@ -106,7 +108,8 @@ partial class Form1
         {
             Text = "Minimize to Tray",
             Location = new Point(20, 325),
-            Size = new Size(120, 30),
+            // Widened to avoid text clipping on 125%/150% DPI
+            Size = new Size(150, 30),
             Font = new Font("Segoe UI", 9F)
         };
         btnMinimize.Click += BtnMinimize_Click;

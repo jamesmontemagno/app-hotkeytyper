@@ -25,7 +25,7 @@ partial class Form1
         
         // Form properties
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(500, 300);
+        ClientSize = new Size(500, 340);
         Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
         StartPosition = FormStartPosition.CenterScreen;
         MaximizeBox = false;
@@ -137,19 +137,6 @@ partial class Form1
         this.txtPredefinedText = txtPredefinedText;
         this.sliderTypingSpeed = sliderTypingSpeed;
         this.lblSpeedIndicator = lblSpeedIndicator;
-    }
-    
-    private string GetSpeedText(int speed)
-    {
-        return speed switch
-        {
-            1 or 2 => "Very Slow",
-            3 or 4 => "Slow",
-            5 or 6 => "Normal",
-            7 or 8 => "Fast",
-            9 or 10 => "Very Fast",
-            _ => "Normal"
-        };
     }
     
     private TextBox txtPredefinedText;

@@ -29,6 +29,10 @@ public partial class Form1 : Form
     private int lastNonCodeSpeed = 10; // persisted
     private ToolTip? speedToolTip;
     
+    // File source mode
+    private bool fileSourceMode = false;
+    private string fileSourcePath = string.Empty;
+    
     // Reliability heuristics for high-speed typing
     private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
     private const int ContextualPauseMs = 140; // Extra pause after space following certain boundary chars
@@ -100,6 +104,23 @@ public partial class Form1 : Form
         {
             chkHasCode.Checked = hasCodeMode;
         }
+        if (chkUseFile != null)
+        {
+            chkUseFile.Checked = fileSourceMode;
+        }
+        if (txtFilePath != null)
+        {
+            txtFilePath.Text = fileSourcePath;
+            txtFilePath.Enabled = fileSourceMode;
+        }
+        if (btnBrowseFile != null)
+        {
+            btnBrowseFile.Enabled = fileSourceMode;
+        }
+        if (txtPredefinedText != null)
+        {
+            txtPredefinedText.Enabled = !fileSourceMode;
+        }
         UpdateTooltips();
     }
     
@@ -126,6 +147,11 @@ public partial class Form1 : Form
                     {
                         lastNonCodeSpeed = settings.LastNonCodeSpeed;
                     }
+                    fileSourceMode = settings.UseFileSource;
+                    if (!string.IsNullOrWhiteSpace(settings.FileSourcePath))
+                    {
+                        fileSourcePath = settings.FileSourcePath;
+                    }
                 }
             }
         }
@@ -139,7 +165,7 @@ public partial class Form1 : Form
     {
         try
         {
-            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode, LastNonCodeSpeed = lastNonCodeSpeed };
+            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode, LastNonCodeSpeed = lastNonCodeSpeed, UseFileSource = fileSourceMode, FileSourcePath = fileSourcePath };
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsFilePath, json);
         }
@@ -203,6 +229,35 @@ public partial class Form1 : Form
         typingCts = new CancellationTokenSource();
         var token = typingCts.Token;
 
+        // Determine content to type (just-in-time). Do NOT overwrite the user's textbox content when using file mode.
+        string? contentToType;
+        if (fileSourceMode)
+        {
+            bool truncated;
+            contentToType = LoadFileContentForTyping(out truncated);
+            if (contentToType == null)
+            {
+                // Abort typing if file not available
+                typingCts.Dispose();
+                typingCts = null;
+                if (lblStatus != null)
+                {
+                    lblStatus.Text = "Status: File not found";
+                    lblStatus.ForeColor = Color.Red;
+                }
+                return;
+            }
+            if (truncated && lblStatus != null)
+            {
+                lblStatus.Text = "Status: File truncated for typing";
+                lblStatus.ForeColor = Color.DarkOrange;
+            }
+        }
+        else
+        {
+            contentToType = txtPredefinedText?.Text ?? predefinedText;
+        }
+
         // Update UI state
         if (lblStatus != null)
         {
@@ -215,10 +270,10 @@ public partial class Form1 : Form
         }
 
         // Fire and forget task (safe because we manage CTS and UI context)
-        _ = TypePredefinedTextAsync(token);
+        _ = TypePredefinedTextAsync(token, contentToType);
     }
 
-    private async Task TypePredefinedTextAsync(CancellationToken token)
+    private async Task TypePredefinedTextAsync(CancellationToken token, string content)
     {
         try
         {
@@ -243,10 +298,10 @@ public partial class Form1 : Form
             Random random = new Random();
             
             char prev = '\0';
-            for (int index = 0; index < predefinedText.Length; index++)
+            for (int index = 0; index < content.Length; index++)
             {
                 if (token.IsCancellationRequested) break;
-                char c = predefinedText[index];
+                char c = content[index];
 
                 // Contextual pause heuristic: if previous char was a boundary and current is a space, pause before continuing
                 if (prev != '\0' && c == ' ' && ContextBoundaryChars.Contains(prev) && typingSpeed >= 7)
@@ -338,11 +393,26 @@ public partial class Form1 : Form
     
     private void BtnUpdate_Click(object? sender, EventArgs e)
     {
+        if (fileSourceMode)
+        {
+            // In file mode, saving text box content is irrelevant; show passive status.
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: File mode active (text box not saved)";
+                lblStatus.ForeColor = Color.DarkOrange;
+            }
+            return;
+        }
+
         if (txtPredefinedText != null)
         {
             predefinedText = txtPredefinedText.Text;
             SaveSettings();
-            MessageBox.Show("Text updated and saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: Text saved";
+                lblStatus.ForeColor = Color.Green;
+            }
         }
     }
     
@@ -399,6 +469,58 @@ public partial class Form1 : Form
             }
             UpdateTooltips();
             SaveSettings();
+        }
+    }
+
+    private void ChkUseFile_CheckedChanged(object? sender, EventArgs e)
+    {
+        if (sender is CheckBox cb)
+        {
+            fileSourceMode = cb.Checked;
+            if (txtFilePath != null) txtFilePath.Enabled = fileSourceMode;
+            if (btnBrowseFile != null) btnBrowseFile.Enabled = fileSourceMode;
+            if (txtPredefinedText != null) txtPredefinedText.Enabled = !fileSourceMode;
+            SaveSettings();
+        }
+    }
+
+    private void BtnBrowseFile_Click(object? sender, EventArgs e)
+    {
+        using var ofd = new OpenFileDialog
+        {
+            Title = "Select text or markdown file",
+            Filter = "Text/Markdown (*.txt;*.md)|*.txt;*.md|All Files (*.*)|*.*",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (ofd.ShowDialog() == DialogResult.OK)
+        {
+            fileSourcePath = ofd.FileName;
+            if (txtFilePath != null) txtFilePath.Text = fileSourcePath;
+            SaveSettings();
+        }
+    }
+
+    private string? LoadFileContentForTyping(out bool truncated)
+    {
+        truncated = false;
+        if (string.IsNullOrWhiteSpace(fileSourcePath)) return null;
+        try
+        {
+            if (!File.Exists(fileSourcePath)) return null;
+            string text = File.ReadAllText(fileSourcePath);
+            const int maxLen = 50000;
+            if (text.Length > maxLen)
+            {
+                text = text.Substring(0, maxLen);
+                truncated = true;
+            }
+            return text;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error reading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return null;
         }
     }
 
@@ -491,4 +613,6 @@ public class AppSettings
     public int TypingSpeed { get; set; } = 5;
     public bool HasCode { get; set; } = false;
     public int LastNonCodeSpeed { get; set; } = 10;
+    public bool UseFileSource { get; set; } = false;
+    public string FileSourcePath { get; set; } = string.Empty;
 }

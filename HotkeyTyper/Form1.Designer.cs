@@ -25,7 +25,7 @@ partial class Form1
         
         // Form properties
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(500, 420);
+    ClientSize = new Size(500, 540); // Increased further to prevent clipping after additional downward shifts
         Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
         StartPosition = FormStartPosition.CenterScreen;
         MaximizeBox = false;
@@ -99,18 +99,54 @@ partial class Form1
         {
             Name = "chkHasCode",
             Text = "Has Code (limit speed)",
-            Location = new Point(20, 255),
+            Location = new Point(20, 290), // Further down to avoid any overlap/cutoff
             Size = new Size(180, 20),
             Checked = hasCodeMode,
             Font = new Font("Segoe UI", 9F)
         };
         chkHasCode.CheckedChanged += ChkHasCode_CheckedChanged;
+
+        // Use file checkbox
+        var chkUseFile = new CheckBox
+        {
+            Name = "chkUseFile",
+            Text = "Use File (.md/.txt)",
+            Location = new Point(220, 290), // Align with Has Code new Y
+            Size = new Size(150, 20),
+            Checked = false,
+            Font = new Font("Segoe UI", 9F)
+        };
+        chkUseFile.CheckedChanged += ChkUseFile_CheckedChanged;
+
+        // File path textbox
+        var txtFilePath = new TextBox
+        {
+            Name = "txtFilePath",
+            Location = new Point(20, 320), // Shifted down to maintain spacing under checkboxes
+            Size = new Size(370, 23),
+            Text = string.Empty,
+            Enabled = false,
+            ReadOnly = true,
+            Font = new Font("Segoe UI", 9F)
+        };
+
+        // Browse button
+        var btnBrowseFile = new Button
+        {
+            Name = "btnBrowseFile",
+            Text = "Browse…",
+            Location = new Point(400, 318), // Align with file path new Y
+            Size = new Size(80, 26),
+            Enabled = false,
+            Font = new Font("Segoe UI", 9F)
+        };
+        btnBrowseFile.Click += BtnBrowseFile_Click;
         
         // Button to update text
         var btnUpdate = new Button
         {
-            Text = "Update Text",
-            Location = new Point(20, 285),
+            Text = "Save",
+            Location = new Point(20, 355), // Shifted further down
             Size = new Size(100, 30),
             Font = new Font("Segoe UI", 9F)
         };
@@ -120,7 +156,7 @@ partial class Form1
         var btnMinimize = new Button
         {
             Text = "Minimize to Tray",
-            Location = new Point(20, 325),
+            Location = new Point(20, 395), // Shifted down with rest
             // Widened to avoid text clipping on 125%/150% DPI
             Size = new Size(150, 30),
             Font = new Font("Segoe UI", 9F)
@@ -132,7 +168,7 @@ partial class Form1
         {
             Name = "btnStop",
             Text = "Stop Typing",
-            Location = new Point(20, 365),
+            Location = new Point(20, 435), // Shifted down to maintain spacing
             Size = new Size(150, 30),
             Font = new Font("Segoe UI", 9F),
             Enabled = false // Enabled only while typing is in progress
@@ -143,7 +179,7 @@ partial class Form1
         var lblStatus = new Label
         {
             Text = "Status: Hotkey CTRL+SHIFT+1 is active",
-            Location = new Point(150, 292),
+            Location = new Point(150, 370), // Repositioned for new layout
             Size = new Size(320, 20),
             Font = new Font("Segoe UI", 9F),
             ForeColor = Color.Green
@@ -157,6 +193,9 @@ partial class Form1
             sliderTypingSpeed,
             lblSpeedIndicator,
             chkHasCode,
+            chkUseFile,
+            txtFilePath,
+            btnBrowseFile,
             btnUpdate, 
             btnMinimize,
             btnStop,
@@ -170,6 +209,9 @@ partial class Form1
         this.lblStatus = lblStatus;
         this.btnStop = btnStop;
         this.chkHasCode = chkHasCode;
+        this.chkUseFile = chkUseFile;
+        this.txtFilePath = txtFilePath;
+        this.btnBrowseFile = btnBrowseFile;
     }
     
     private TextBox txtPredefinedText;
@@ -178,6 +220,9 @@ partial class Form1
     private Label lblStatus;
     private Button btnStop;
     private CheckBox chkHasCode;
+    private CheckBox chkUseFile;
+    private TextBox txtFilePath;
+    private Button btnBrowseFile;
 
     #endregion
 }

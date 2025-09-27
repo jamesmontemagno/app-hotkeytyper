@@ -14,8 +14,12 @@ public partial class Form1 : Form
     // Settings file path
     private readonly string settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
     
-    // Predefined text to type
+    // Predefined text to type (legacy support)
     private string predefinedText = "Hello, this is my predefined text!";
+    
+    // Snippet management
+    private List<Snippet> snippets = new();
+    private string activeSnippetId = string.Empty;
     
     // Typing speed (1 = slowest, 10 = fastest)
     private int typingSpeed = 5;
@@ -79,11 +83,9 @@ public partial class Form1 : Form
     
     private void UpdateUIFromSettings()
     {
-        // Update text box with loaded predefined text
-        if (txtPredefinedText != null)
-        {
-            txtPredefinedText.Text = predefinedText;
-        }
+        // Update snippet controls
+        UpdateSnippetComboBox();
+        UpdateSnippetTextBox();
         
         // Update typing speed slider with loaded value
         if (sliderTypingSpeed != null)
@@ -125,6 +127,18 @@ public partial class Form1 : Form
         {
             txtPredefinedText.Enabled = !fileSourceMode;
         }
+        if (cmbSnippets != null)
+        {
+            cmbSnippets.Enabled = !fileSourceMode;
+        }
+        if (btnNewSnippet != null)
+        {
+            btnNewSnippet.Enabled = !fileSourceMode;
+        }
+        if (btnDuplicateSnippet != null)
+        {
+            btnDuplicateSnippet.Enabled = !fileSourceMode;
+        }
         UpdateTooltips();
     }
     
@@ -138,10 +152,41 @@ public partial class Form1 : Form
                 var settings = JsonSerializer.Deserialize<AppSettings>(json);
                 if (settings != null)
                 {
-                    if (!string.IsNullOrEmpty(settings.PredefinedText))
+                    // Load snippets if they exist
+                    if (settings.Snippets.Count > 0)
                     {
-                        predefinedText = settings.PredefinedText;
+                        snippets = settings.Snippets;
+                        activeSnippetId = settings.ActiveSnippetId;
+                        
+                        // Ensure active snippet is valid
+                        if (string.IsNullOrEmpty(activeSnippetId) || !snippets.Any(s => s.Id == activeSnippetId))
+                        {
+                            activeSnippetId = snippets.First().Id;
+                        }
                     }
+                    else
+                    {
+                        // Migration from old format: create default snippet from PredefinedText
+                        var defaultContent = !string.IsNullOrEmpty(settings.PredefinedText) 
+                            ? settings.PredefinedText 
+                            : predefinedText;
+                            
+                        var defaultSnippet = new Snippet
+                        {
+                            Id = "default",
+                            Name = "Default",
+                            Content = defaultContent,
+                            LastUsed = DateTime.Now
+                        };
+                        
+                        snippets = new List<Snippet> { defaultSnippet };
+                        activeSnippetId = "default";
+                        
+                        // Save the migrated data
+                        SaveSettings();
+                    }
+                    
+                    // Load other settings
                     if (settings.TypingSpeed > 0 && settings.TypingSpeed <= 10)
                     {
                         typingSpeed = settings.TypingSpeed;
@@ -158,10 +203,39 @@ public partial class Form1 : Form
                     }
                 }
             }
+            else
+            {
+                // Create default snippet for new installations
+                var defaultSnippet = new Snippet
+                {
+                    Id = "default",
+                    Name = "Default",
+                    Content = predefinedText,
+                    LastUsed = DateTime.Now
+                };
+                
+                snippets = new List<Snippet> { defaultSnippet };
+                activeSnippetId = "default";
+            }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error loading settings: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            
+            // Fallback to default snippet on error
+            if (snippets.Count == 0)
+            {
+                var defaultSnippet = new Snippet
+                {
+                    Id = "default",
+                    Name = "Default",
+                    Content = predefinedText,
+                    LastUsed = DateTime.Now
+                };
+                
+                snippets = new List<Snippet> { defaultSnippet };
+                activeSnippetId = "default";
+            }
         }
     }
     
@@ -169,7 +243,16 @@ public partial class Form1 : Form
     {
         try
         {
-            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode, LastNonCodeSpeed = lastNonCodeSpeed, UseFileSource = fileSourceMode, FileSourcePath = fileSourcePath };
+            var settings = new AppSettings 
+            { 
+                Snippets = snippets,
+                ActiveSnippetId = activeSnippetId,
+                TypingSpeed = typingSpeed, 
+                HasCode = hasCodeMode, 
+                LastNonCodeSpeed = lastNonCodeSpeed, 
+                UseFileSource = fileSourceMode, 
+                FileSourcePath = fileSourcePath 
+            };
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsFilePath, json);
         }
@@ -177,6 +260,97 @@ public partial class Form1 : Form
         {
             MessageBox.Show($"Error saving settings: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+    
+    private Snippet? GetActiveSnippet()
+    {
+        return snippets.FirstOrDefault(s => s.Id == activeSnippetId);
+    }
+    
+    private string GetCurrentSnippetContent()
+    {
+        var activeSnippet = GetActiveSnippet();
+        return activeSnippet?.Content ?? predefinedText;
+    }
+    
+    private void UpdateActiveSnippet(string newContent)
+    {
+        var activeSnippet = GetActiveSnippet();
+        if (activeSnippet != null)
+        {
+            activeSnippet.Content = newContent;
+            activeSnippet.LastUsed = DateTime.Now;
+        }
+    }
+    
+    private string GenerateUniqueSnippetId()
+    {
+        int counter = snippets.Count + 1;
+        string baseId = "snippet";
+        string id = $"{baseId}{counter}";
+        
+        while (snippets.Any(s => s.Id == id))
+        {
+            counter++;
+            id = $"{baseId}{counter}";
+        }
+        
+        return id;
+    }
+    
+    private string? ShowInputDialog(string prompt, string title, string defaultValue = "")
+    {
+        using var form = new Form();
+        form.Text = title;
+        form.Width = 400;
+        form.Height = 150;
+        form.StartPosition = FormStartPosition.CenterParent;
+        form.FormBorderStyle = FormBorderStyle.FixedDialog;
+        form.MaximizeBox = false;
+        form.MinimizeBox = false;
+        
+        var label = new Label { Text = prompt, Left = 20, Top = 20, Width = 350, Height = 20 };
+        var textBox = new TextBox { Text = defaultValue, Left = 20, Top = 45, Width = 350, Height = 20 };
+        var buttonOK = new Button { Text = "OK", Left = 240, Top = 75, Width = 60, DialogResult = DialogResult.OK };
+        var buttonCancel = new Button { Text = "Cancel", Left = 310, Top = 75, Width = 60, DialogResult = DialogResult.Cancel };
+        
+        form.Controls.AddRange(new Control[] { label, textBox, buttonOK, buttonCancel });
+        form.AcceptButton = buttonOK;
+        form.CancelButton = buttonCancel;
+        
+        return form.ShowDialog() == DialogResult.OK ? textBox.Text : null;
+    }
+    
+    private void UpdateSnippetComboBox()
+    {
+        if (cmbSnippets == null) return;
+        
+        cmbSnippets.Items.Clear();
+        foreach (var snippet in snippets.OrderBy(s => s.Name))
+        {
+            cmbSnippets.Items.Add(snippet);
+        }
+        
+        // Select the active snippet
+        var activeSnippet = GetActiveSnippet();
+        if (activeSnippet != null)
+        {
+            cmbSnippets.SelectedItem = activeSnippet;
+        }
+        
+        // Update button states
+        if (btnDeleteSnippet != null)
+        {
+            btnDeleteSnippet.Enabled = snippets.Count > 1;
+        }
+    }
+    
+    private void UpdateSnippetTextBox()
+    {
+        if (txtPredefinedText == null) return;
+        
+        var activeSnippet = GetActiveSnippet();
+        txtPredefinedText.Text = activeSnippet?.Content ?? "";
     }
     
     private void InitializeSystemTray()
@@ -272,7 +446,7 @@ public partial class Form1 : Form
         }
         else
         {
-            contentToType = txtPredefinedText?.Text ?? predefinedText;
+            contentToType = GetCurrentSnippetContent();
         }
 
         // Update UI state
@@ -423,11 +597,12 @@ public partial class Form1 : Form
 
         if (txtPredefinedText != null)
         {
-            predefinedText = txtPredefinedText.Text;
+            UpdateActiveSnippet(txtPredefinedText.Text);
             SaveSettings();
             if (lblStatus != null)
             {
-                lblStatus.Text = "Status: Text saved";
+                var activeSnippet = GetActiveSnippet();
+                lblStatus.Text = $"Status: Snippet '{activeSnippet?.Name ?? "Unknown"}' saved";
                 lblStatus.ForeColor = Color.Green;
             }
         }
@@ -497,6 +672,10 @@ public partial class Form1 : Form
             if (txtFilePath != null) txtFilePath.Enabled = fileSourceMode;
             if (btnBrowseFile != null) btnBrowseFile.Enabled = fileSourceMode;
             if (txtPredefinedText != null) txtPredefinedText.Enabled = !fileSourceMode;
+            if (cmbSnippets != null) cmbSnippets.Enabled = !fileSourceMode;
+            if (btnNewSnippet != null) btnNewSnippet.Enabled = !fileSourceMode;
+            if (btnDuplicateSnippet != null) btnDuplicateSnippet.Enabled = !fileSourceMode;
+            if (btnDeleteSnippet != null) btnDeleteSnippet.Enabled = !fileSourceMode && snippets.Count > 1;
             SaveSettings();
         }
     }
@@ -515,6 +694,129 @@ public partial class Form1 : Form
             fileSourcePath = ofd.FileName;
             if (txtFilePath != null) txtFilePath.Text = fileSourcePath;
             SaveSettings();
+        }
+    }
+
+    private void CmbSnippets_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (sender is ComboBox cmb && cmb.SelectedItem is Snippet selectedSnippet)
+        {
+            activeSnippetId = selectedSnippet.Id;
+            UpdateSnippetTextBox();
+            SaveSettings();
+        }
+    }
+
+    private void BtnNewSnippet_Click(object? sender, EventArgs e)
+    {
+        string? name = ShowInputDialog("Enter name for new snippet:", "New Snippet");
+            
+        if (string.IsNullOrWhiteSpace(name)) return;
+        
+        name = name.Trim();
+        
+        // Check for duplicate names (case-insensitive)
+        if (snippets.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A snippet with this name already exists. Please choose a different name.", 
+                "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        var newSnippet = new Snippet
+        {
+            Id = GenerateUniqueSnippetId(),
+            Name = name,
+            Content = "Type your snippet content here...",
+            LastUsed = DateTime.Now
+        };
+        
+        snippets.Add(newSnippet);
+        activeSnippetId = newSnippet.Id;
+        
+        UpdateSnippetComboBox();
+        UpdateSnippetTextBox();
+        SaveSettings();
+        
+        if (lblStatus != null)
+        {
+            lblStatus.Text = $"Status: Created new snippet '{name}'";
+            lblStatus.ForeColor = Color.Green;
+        }
+    }
+
+    private void BtnDuplicateSnippet_Click(object? sender, EventArgs e)
+    {
+        var currentSnippet = GetActiveSnippet();
+        if (currentSnippet == null) return;
+        
+        string? name = ShowInputDialog("Enter name for copied snippet:", "Duplicate Snippet", currentSnippet.Name + " - Copy");
+            
+        if (string.IsNullOrWhiteSpace(name)) return;
+        
+        name = name.Trim();
+        
+        // Check for duplicate names (case-insensitive)
+        if (snippets.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A snippet with this name already exists. Please choose a different name.", 
+                "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        var duplicatedSnippet = new Snippet
+        {
+            Id = GenerateUniqueSnippetId(),
+            Name = name,
+            Content = currentSnippet.Content,
+            LastUsed = DateTime.Now
+        };
+        
+        snippets.Add(duplicatedSnippet);
+        activeSnippetId = duplicatedSnippet.Id;
+        
+        UpdateSnippetComboBox();
+        UpdateSnippetTextBox();
+        SaveSettings();
+        
+        if (lblStatus != null)
+        {
+            lblStatus.Text = $"Status: Duplicated snippet as '{name}'";
+            lblStatus.ForeColor = Color.Green;
+        }
+    }
+
+    private void BtnDeleteSnippet_Click(object? sender, EventArgs e)
+    {
+        if (snippets.Count <= 1)
+        {
+            MessageBox.Show("Cannot delete the last remaining snippet.", 
+                "Cannot Delete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        var currentSnippet = GetActiveSnippet();
+        if (currentSnippet == null) return;
+        
+        var result = MessageBox.Show($"Are you sure you want to delete the snippet '{currentSnippet.Name}'?", 
+            "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+        if (result == DialogResult.Yes)
+        {
+            snippets.Remove(currentSnippet);
+            
+            // Select first remaining snippet
+            activeSnippetId = snippets.First().Id;
+            
+            UpdateSnippetComboBox();
+            UpdateSnippetTextBox();
+            SaveSettings();
+            
+            if (lblStatus != null)
+            {
+                lblStatus.Text = $"Status: Deleted snippet '{currentSnippet.Name}'";
+                lblStatus.ForeColor = Color.Green;
+            }
         }
     }
 
@@ -667,10 +969,30 @@ public partial class Form1 : Form
     }
 }
 
+// Snippet data model
+public class Snippet
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public DateTime LastUsed { get; set; } = DateTime.Now;
+    
+    public override string ToString()
+    {
+        return Name;
+    }
+}
+
 // Settings class for JSON serialization
 public class AppSettings
 {
+    // Legacy property for backward compatibility
     public string PredefinedText { get; set; } = string.Empty;
+    
+    // New snippet support
+    public List<Snippet> Snippets { get; set; } = new();
+    public string ActiveSnippetId { get; set; } = string.Empty;
+    
     public int TypingSpeed { get; set; } = 5;
     public bool HasCode { get; set; } = false;
     public int LastNonCodeSpeed { get; set; } = 10;

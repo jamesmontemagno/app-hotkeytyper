@@ -47,14 +47,64 @@ partial class Form1
             Font = new Font("Segoe UI", 10F, FontStyle.Regular)
         };
         
-        // TextBox for predefined text
+        // TextBox for predefined text (replaced with snippet selector and edit area)
+        var lblSnippets = new Label
+        {
+            Text = "Active Snippet:",
+            Location = new Point(20, 85),
+            Size = new Size(100, 20),
+            Font = new Font("Segoe UI", 9F)
+        };
+        
+        // ComboBox for snippet selection
+        var cmbSnippets = new ComboBox
+        {
+            Name = "cmbSnippets",
+            Location = new Point(125, 83),
+            Size = new Size(200, 23),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font("Segoe UI", 9F)
+        };
+        cmbSnippets.SelectedIndexChanged += CmbSnippets_SelectedIndexChanged;
+        
+        // Snippet management buttons
+        var btnNewSnippet = new Button
+        {
+            Name = "btnNewSnippet",
+            Text = "New",
+            Location = new Point(335, 82),
+            Size = new Size(50, 25),
+            Font = new Font("Segoe UI", 8F)
+        };
+        btnNewSnippet.Click += BtnNewSnippet_Click;
+        
+        var btnDuplicateSnippet = new Button
+        {
+            Name = "btnDuplicateSnippet",
+            Text = "Copy",
+            Location = new Point(390, 82),
+            Size = new Size(45, 25),
+            Font = new Font("Segoe UI", 8F)
+        };
+        btnDuplicateSnippet.Click += BtnDuplicateSnippet_Click;
+        
+        var btnDeleteSnippet = new Button
+        {
+            Name = "btnDeleteSnippet",
+            Text = "Del",
+            Location = new Point(440, 82),
+            Size = new Size(40, 25),
+            Font = new Font("Segoe UI", 8F)
+        };
+        btnDeleteSnippet.Click += BtnDeleteSnippet_Click;
+        
+        // TextBox for snippet content editing
         var txtPredefinedText = new TextBox
         {
             Name = "txtPredefinedText",
-            Text = predefinedText, // This will show the loaded text
-            // Shifted down slightly to keep spacing after taller instructions label
-            Location = new Point(20, 85),
-            Size = new Size(460, 135), // Increased by 50% from 90 to 135
+            Text = predefinedText, // This will be updated by UpdateUIFromSettings
+            Location = new Point(20, 115),
+            Size = new Size(460, 105), // Reduced height to make room for snippet controls
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
             Font = new Font("Segoe UI", 9F)
@@ -188,6 +238,11 @@ partial class Form1
         // Add controls to form
         Controls.AddRange(new Control[] { 
             lblInstructions, 
+            lblSnippets,
+            cmbSnippets,
+            btnNewSnippet,
+            btnDuplicateSnippet,
+            btnDeleteSnippet,
             txtPredefinedText, 
             lblTypingSpeed,
             sliderTypingSpeed,
@@ -203,6 +258,10 @@ partial class Form1
         });
         
         // Store references for later use
+        this.cmbSnippets = cmbSnippets;
+        this.btnNewSnippet = btnNewSnippet;
+        this.btnDuplicateSnippet = btnDuplicateSnippet;
+        this.btnDeleteSnippet = btnDeleteSnippet;
         this.txtPredefinedText = txtPredefinedText;
         this.sliderTypingSpeed = sliderTypingSpeed;
         this.lblSpeedIndicator = lblSpeedIndicator;
@@ -214,6 +273,10 @@ partial class Form1
         this.btnBrowseFile = btnBrowseFile;
     }
     
+    private ComboBox cmbSnippets;
+    private Button btnNewSnippet;
+    private Button btnDuplicateSnippet;
+    private Button btnDeleteSnippet;
     private TextBox txtPredefinedText;
     private TrackBar sliderTypingSpeed;
     private Label lblSpeedIndicator;

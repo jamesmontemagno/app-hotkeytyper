@@ -20,6 +20,9 @@ public partial class Form1 : Form
     // Typing speed (1 = slowest, 10 = fastest)
     private int typingSpeed = 5;
     
+    // Cancellation for in-progress typing
+    private CancellationTokenSource? typingCts;
+    
     // System tray components
     private NotifyIcon? trayIcon;
     private ContextMenuStrip? trayMenu;
@@ -153,14 +156,40 @@ public partial class Form1 : Form
     {
         if (m.Msg == WM_HOTKEY && m.WParam.ToInt32() == HOTKEY_ID)
         {
-            // Hotkey was pressed, type the predefined text
-            TypePredefinedText();
+            // Hotkey was pressed, begin typing (if not already typing)
+            StartTyping();
         }
         
         base.WndProc(ref m);
     }
     
-    private async void TypePredefinedText()
+    private void StartTyping()
+    {
+        // Ignore if already typing
+        if (typingCts != null)
+        {
+            return;
+        }
+
+        typingCts = new CancellationTokenSource();
+        var token = typingCts.Token;
+
+        // Update UI state
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Status: Typing in progress...";
+            lblStatus.ForeColor = Color.DarkOrange;
+        }
+        if (btnStop != null)
+        {
+            btnStop.Enabled = true;
+        }
+
+        // Fire and forget task (safe because we manage CTS and UI context)
+        _ = TypePredefinedTextAsync(token);
+    }
+
+    private async Task TypePredefinedTextAsync(CancellationToken token)
     {
         try
         {
@@ -168,34 +197,52 @@ public partial class Form1 : Form
             SendKeys.Flush();
             
             // Wait for hotkey to be fully released and target window to be ready
-            await Task.Delay(250);
+            await Task.Delay(250, token);
             
             // Calculate delay based on typing speed (1=slowest, 10=fastest)
-            // Speed 1: 200-300ms, Speed 5: 50-150ms, Speed 10: 10-50ms
             int baseDelay = 310 - (typingSpeed * 30); // Base delay calculation
             int variation = Math.Max(10, baseDelay / 3); // Variation amount
-            
             Random random = new Random();
             
-            // Send each character (escaped for SendKeys) individually to ensure none are lost
             foreach (char c in predefinedText)
             {
-                string token = EscapeForSendKeys(c);
-                if (token.Length == 0)
+                if (token.IsCancellationRequested)
                 {
-                    continue; // skip (e.g. CR in CRLF) 
+                    break;
                 }
-                // Use SendWait to ensure each character (or special sequence) is fully processed before the next
-                SendKeys.SendWait(token);
-                SendKeys.Flush(); // Ensure character is sent before delay
-
-                // Add delay between characters
-                await Task.Delay(Math.Max(20, random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation)));
+                string tokenStr = EscapeForSendKeys(c);
+                if (tokenStr.Length == 0)
+                {
+                    continue; // skip (e.g. CR in CRLF)
+                }
+                SendKeys.SendWait(tokenStr);
+                SendKeys.Flush();
+                int delay = Math.Max(20, random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation));
+                await Task.Delay(delay, token).ContinueWith(_ => { }); // swallow cancellation timing exception here
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when user clicks Stop
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error typing text: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            // Reset UI state
+            typingCts?.Dispose();
+            typingCts = null;
+            if (btnStop != null)
+            {
+                btnStop.Enabled = false;
+            }
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
+                lblStatus.ForeColor = Color.Green;
+            }
         }
     }
 
@@ -266,6 +313,23 @@ public partial class Form1 : Form
     {
         this.WindowState = FormWindowState.Minimized;
         this.ShowInTaskbar = false;
+    }
+    
+    private void BtnStop_Click(object? sender, EventArgs e)
+    {
+        if (typingCts != null && !typingCts.IsCancellationRequested)
+        {
+            typingCts.Cancel();
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: Typing cancelled";
+                lblStatus.ForeColor = Color.Red;
+            }
+            if (btnStop != null)
+            {
+                btnStop.Enabled = false;
+            }
+        }
     }
     
     protected override void Dispose(bool disposing)

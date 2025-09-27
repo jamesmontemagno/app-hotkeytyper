@@ -113,6 +113,18 @@ partial class Form1
             Font = new Font("Segoe UI", 9F)
         };
         btnMinimize.Click += BtnMinimize_Click;
+
+        // Stop typing button (placed under the minimize button)
+        var btnStop = new Button
+        {
+            Name = "btnStop",
+            Text = "Stop Typing",
+            Location = new Point(20, 365),
+            Size = new Size(150, 30),
+            Font = new Font("Segoe UI", 9F),
+            Enabled = false // Enabled only while typing is in progress
+        };
+        btnStop.Click += BtnStop_Click;
         
         // Status label
         var lblStatus = new Label
@@ -133,6 +145,7 @@ partial class Form1
             lblSpeedIndicator,
             btnUpdate, 
             btnMinimize,
+            btnStop,
             lblStatus
         });
         
@@ -140,11 +153,15 @@ partial class Form1
         this.txtPredefinedText = txtPredefinedText;
         this.sliderTypingSpeed = sliderTypingSpeed;
         this.lblSpeedIndicator = lblSpeedIndicator;
+        this.lblStatus = lblStatus;
+        this.btnStop = btnStop;
     }
     
     private TextBox txtPredefinedText;
     private TrackBar sliderTypingSpeed;
     private Label lblSpeedIndicator;
+    private Label lblStatus;
+    private Button btnStop;
 
     #endregion
 }

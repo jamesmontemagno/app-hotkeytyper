@@ -1,0 +1,80 @@
+name: Build Self-Contained Windows App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-win-selfcontained:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-arm64]
+    env:
+      PROJECT_PATH: HotkeyTyper/HotkeyTyper.csproj
+      RUNTIME_ID: ${{ matrix.rid }}
+      CONFIGURATION: Release
+      VERSION: 0.0.${{ github.run_number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+            path: ~/.nuget/packages
+            key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+            restore-keys: |
+              ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore $env:PROJECT_PATH
+
+      - name: Publish self-contained (${{ matrix.rid }})
+        run: >-
+          dotnet publish $env:PROJECT_PATH
+          -c $env:CONFIGURATION
+          -r $env:RUNTIME_ID
+          --self-contained true
+          /p:PublishSingleFile=true
+          /p:IncludeNativeLibrariesForSelfExtract=true
+          /p:EnableCompressionInSingleFile=true
+          /p:PublishReadyToRun=true
+          /p:ReadyToRunShowWarnings=true
+          /p:DebugType=None
+          /p:DebugSymbols=false
+          /p:Version=$env:VERSION
+          /p:FileVersion=$env:VERSION
+          /p:AssemblyVersion=0.0.0.0
+          -o publish/$env:RUNTIME_ID
+
+      - name: Copy license and readme
+        run: |
+          Copy-Item README.md publish/$env:RUNTIME_ID -ErrorAction SilentlyContinue
+          Copy-Item LICENSE publish/$env:RUNTIME_ID -ErrorAction SilentlyContinue
+
+      - name: Create zip artifact (${{ matrix.rid }})
+        id: zip
+        run: |
+          $zipName = "HotkeyTyper_${{ env.RUNTIME_ID }}_${{ env.VERSION }}.zip"
+          Compress-Archive -Path publish/$env:RUNTIME_ID/* -DestinationPath $zipName
+          echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+
+      - name: Upload artifact (${{ matrix.rid }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: HotkeyTyper-${{ env.VERSION }}-${{ env.RUNTIME_ID }}
+          path: ${{ steps.zip.outputs.zip_name }}
+          if-no-files-found: error
+
+      - name: Summary append (${{ matrix.rid }})
+        run: |
+          echo "Built version $env:VERSION for $env:RUNTIME_ID (ReadyToRun enabled)." >> $GITHUB_STEP_SUMMARY
+          echo "Artifact: HotkeyTyper-${{ env.VERSION }}-${{ env.RUNTIME_ID }}" >> $GITHUB_STEP_SUMMARY

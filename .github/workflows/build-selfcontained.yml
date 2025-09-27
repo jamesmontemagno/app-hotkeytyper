@@ -78,3 +78,49 @@ jobs:
         run: |
           echo "Built version $env:VERSION for $env:RUNTIME_ID (ReadyToRun enabled)." >> $GITHUB_STEP_SUMMARY
           echo "Artifact: HotkeyTyper-${{ env.VERSION }}-${{ env.RUNTIME_ID }}" >> $GITHUB_STEP_SUMMARY
+
+  release:
+    needs: build-win-selfcontained
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.run_attempt == 1
+    permissions:
+      contents: write
+    env:
+      VERSION: 0.0.${{ github.run_number }}
+      TAG: v0.0.${{ github.run_number }}
+    steps:
+      - name: Checkout (for context)
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Artifacts downloaded:" 
+          ls -R artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: HotkeyTyper ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: artifacts/**/*.zip
+          body: |
+            Automated build for version ${{ env.VERSION }}.
+
+            Runtimes included:
+            - win-x64
+            - win-arm64
+
+            Build number: ${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Append release summary
+        run: |
+          echo "Release created: ${{ env.TAG }}" >> $GITHUB_STEP_SUMMARY

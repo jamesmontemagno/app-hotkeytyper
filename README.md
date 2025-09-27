@@ -8,6 +8,9 @@ Key features:
 - Human-like typing with randomized delays
 - Persistent settings stored in `settings.json`
 - System tray integration for unobtrusive background operation
+	- Hotkey now remains active after minimizing to tray (handle recreation is auto-handled)
+ - Custom in-memory tray & window icon (no external .ico file required)
+	- First run exports `HotkeyTyper.ico` beside the executable so you can replace it and set as `<ApplicationIcon>` if desired
 
 Repository:
 
@@ -33,11 +36,14 @@ Usage
 2. Enter your desired text in the main window and click "Update Text" to save.
 3. Switch to any application and press CTRL+SHIFT+1 to have Hotkey Typer type the configured snippet.
 4. Minimize to tray to keep the app running in the background.
+	- The global hotkey remains active even after minimizing or toggling taskbar visibility.
 
 Notes
 
 - Some applications or elevated processes may block automated input; run Hotkey Typer with matching elevation if needed.
 - Because the app simulates keystrokes, security tools may flag it. Only run it in trusted environments.
+ - The tray + taskbar icon is generated at runtime (see `IconFactory.cs`). To supply your own static icon, add an .ico file to the project and set `<ApplicationIcon>YourIcon.ico</ApplicationIcon>` in the csproj, then assign it to the tray `NotifyIcon` in `Form1`.
+ - A copy of the generated icon is saved as `HotkeyTyper.ico` (only if the file does not already exist) for convenience.
 
 ## Typing source code & special characters
 

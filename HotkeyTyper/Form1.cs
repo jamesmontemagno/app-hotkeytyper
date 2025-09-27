@@ -41,6 +41,8 @@ public partial class Form1 : Form
     // System tray components
     private NotifyIcon? trayIcon;
     private ContextMenuStrip? trayMenu;
+    private Icon? appIcon; // custom generated icon
+    private IntPtr appIconHandle = IntPtr.Zero; // native handle for cleanup
     
     // Windows API imports
     [DllImport("user32.dll")]
@@ -60,9 +62,11 @@ public partial class Form1 : Form
         InitializeComponent();
         InitializeSystemTray();
         LoadSettings();
-        
-        // Register CTRL+SHIFT+1 as global hotkey
-        RegisterHotKey(this.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, (int)Keys.D1);
+        // NOTE: Global hotkey registration is now handled in OnHandleCreated so that
+        // it is automatically re-registered if the window handle is recreated (e.g.
+        // when toggling ShowInTaskbar while minimizing to tray). Previously the hotkey
+        // stopped working after minimizing because ShowInTaskbar can force a handle
+        // recreation which invalidated the original RegisterHotKey binding.
         
         // Update UI after form is fully loaded
         this.Load += Form1_Load;
@@ -178,11 +182,24 @@ public partial class Form1 : Form
     private void InitializeSystemTray()
     {
         // Create system tray icon
+        if (appIcon == null)
+        {
+            // Generate & cache custom icon (shared between form & tray)
+            appIcon = IconFactory.Create(out appIconHandle);
+            this.Icon = appIcon; // taskbar / alt-tab icon
+            // Export icon for user customization if not already present
+            try
+            {
+                string exportPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HotkeyTyper.ico");
+                IconFactory.TryExportIcon(appIcon, exportPath);
+            }
+            catch { /* ignore export errors */ }
+        }
         trayIcon = new NotifyIcon()
         {
             Text = "Hotkey Typer - CTRL+SHIFT+1 Active",
             Visible = true,
-            Icon = SystemIcons.Application
+            Icon = appIcon ?? SystemIcons.Application
         };
         
         // Create context menu for tray icon
@@ -597,12 +614,56 @@ public partial class Form1 : Form
             trayIcon.Dispose();
         }
         trayMenu?.Dispose();
+        if (appIcon != null)
+        {
+            IconFactory.Destroy(ref appIcon, ref appIconHandle);
+        }
         
         if (disposing && (components != null))
         {
             components.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Ensures the global hotkey is (re)registered whenever the form's native handle is created.
+    /// This fixes a bug where minimizing to tray (setting ShowInTaskbar = false) can recreate the
+    /// window handle and silently detach the previously registered hotkey.
+    /// </summary>
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        TryRegisterGlobalHotkey();
+    }
+
+    /// <summary>
+    /// Attempt to register CTRL+SHIFT+1 as a global hotkey. If the hotkey is already registered
+    /// (stale from a previous handle) we first try to unregister. Any failure is surfaced in the
+    /// status label and via a tray balloon tip for visibility.
+    /// </summary>
+    private void TryRegisterGlobalHotkey()
+    {
+        // Best-effort: in case a previous registration existed for a prior handle instance.
+        UnregisterHotKey(this.Handle, HOTKEY_ID);
+
+        if (!RegisterHotKey(this.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, (int)Keys.D1))
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: Failed to register global hotkey";
+                lblStatus.ForeColor = Color.Red;
+            }
+            trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", "Failed to register global hotkey CTRL+SHIFT+1. It may be in use by another application.", ToolTipIcon.Error);
+        }
+        else
+        {
+            if (lblStatus != null && lblStatus.Text.StartsWith("Status: Failed", StringComparison.OrdinalIgnoreCase))
+            {
+                lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
+                lblStatus.ForeColor = Color.Green;
+            }
+        }
     }
 }
 

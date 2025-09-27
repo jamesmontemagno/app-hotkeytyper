@@ -177,13 +177,18 @@ public partial class Form1 : Form
             
             Random random = new Random();
             
-            // Send each character individually to ensure none are lost
+            // Send each character (escaped for SendKeys) individually to ensure none are lost
             foreach (char c in predefinedText)
             {
-                // Use SendWait to ensure each character is fully processed before the next
-                SendKeys.SendWait(c.ToString());
+                string token = EscapeForSendKeys(c);
+                if (token.Length == 0)
+                {
+                    continue; // skip (e.g. CR in CRLF) 
+                }
+                // Use SendWait to ensure each character (or special sequence) is fully processed before the next
+                SendKeys.SendWait(token);
                 SendKeys.Flush(); // Ensure character is sent before delay
-                
+
                 // Add delay between characters
                 await Task.Delay(Math.Max(20, random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation)));
             }
@@ -192,6 +197,33 @@ public partial class Form1 : Form
         {
             MessageBox.Show($"Error typing text: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    /// <summary>
+    /// Escapes a single character for SendKeys so that source code or other literal text
+    /// (including parentheses and plus/caret/percent signs) can be typed without triggering
+    /// SendKeys grouping or modifier semantics.
+    /// </summary>
+    internal static string EscapeForSendKeys(char c)
+    {
+        return c switch
+        {
+            // Modifier / special grouping characters that must be wrapped in braces to be literal
+            '+' => "{+}",
+            '^' => "{^}",
+            '%' => "{%}",
+            '~' => "{~}",
+            '(' => "{(}",
+            ')' => "{)}",
+            // Braces require doubling pattern
+            '{' => "{{}",
+            '}' => "{}}",
+            // Translate newlines / tabs to their SendKeys representations
+            '\n' => "{ENTER}",
+            '\r' => string.Empty, // ignore CR in CRLF to avoid double-enter
+            '\t' => "{TAB}",
+            _ => c.ToString()
+        };
     }
     
     private void BtnUpdate_Click(object? sender, EventArgs e)

@@ -39,4 +39,24 @@ Notes
 - Some applications or elevated processes may block automated input; run Hotkey Typer with matching elevation if needed.
 - Because the app simulates keystrokes, security tools may flag it. Only run it in trusted environments.
 
+## Typing source code & special characters
+
+Hotkey Typer uses `SendKeys` under the hood. Certain characters have special meaning in `SendKeys` ( `+ ^ % ~ ( ) { }` ).
+Previously, entering raw C# (e.g. `public void Concat<T>(params ReadOnlySpan<T> items)`) could trigger the runtime error:
+
+```
+Group delimiters are not balanced.
+```
+
+This happened because parentheses are grouping delimiters in `SendKeys` and must be escaped to be typed literally.
+
+The app now automatically escapes these characters for you. You can paste or type source code containing:
+
+- Parentheses: `(` `)`
+- Braces: `{` `}`
+- Plus / caret / percent / tilde: `+ ^ % ~`
+- Tabs and newlines (converted to real Tab / Enter key presses)
+
+If you notice any character that still fails to type correctly, open an issue with the exact snippet.
+
 See `blogs/announce-hotkeytyper.md` for a longer announcement and implementation notes.

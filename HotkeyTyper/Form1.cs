@@ -821,6 +821,7 @@ public partial class Form1 : Form
         currentSnippet.Name = name;
         
         UpdateSnippetComboBox();
+        UpdateSnippetTextBox(); // Ensure UI consistency
         SaveSettings();
         
         if (lblStatus != null)

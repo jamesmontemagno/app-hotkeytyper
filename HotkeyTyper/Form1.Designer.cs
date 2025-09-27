@@ -93,7 +93,7 @@ partial class Form1
             Name = "btnRenameSnippet",
             Text = "Ren",
             Location = new Point(415, 82),
-            Size = new Size(30, 25),
+            Size = new Size(33, 25),
             Font = new Font("Segoe UI", 8F)
         };
         btnRenameSnippet.Click += BtnRenameSnippet_Click;
@@ -102,8 +102,8 @@ partial class Form1
         {
             Name = "btnDeleteSnippet",
             Text = "Del",
-            Location = new Point(450, 82),
-            Size = new Size(30, 25),
+            Location = new Point(452, 82),
+            Size = new Size(28, 25),
             Font = new Font("Segoe UI", 8F)
         };
         btnDeleteSnippet.Click += BtnDeleteSnippet_Click;

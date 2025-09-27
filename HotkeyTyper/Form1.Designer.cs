@@ -92,6 +92,18 @@ partial class Form1
             Size = new Size(100, 20),
             Font = new Font("Segoe UI", 9F, FontStyle.Italic)
         };
+
+        // Checkbox: Has Code (limits speed)
+        var chkHasCode = new CheckBox
+        {
+            Name = "chkHasCode",
+            Text = "Has Code (limit speed)",
+            Location = new Point(20, 255),
+            Size = new Size(180, 20),
+            Checked = hasCodeMode,
+            Font = new Font("Segoe UI", 9F)
+        };
+        chkHasCode.CheckedChanged += ChkHasCode_CheckedChanged;
         
         // Button to update text
         var btnUpdate = new Button
@@ -143,6 +155,7 @@ partial class Form1
             lblTypingSpeed,
             sliderTypingSpeed,
             lblSpeedIndicator,
+            chkHasCode,
             btnUpdate, 
             btnMinimize,
             btnStop,
@@ -155,6 +168,7 @@ partial class Form1
         this.lblSpeedIndicator = lblSpeedIndicator;
         this.lblStatus = lblStatus;
         this.btnStop = btnStop;
+        this.chkHasCode = chkHasCode;
     }
     
     private TextBox txtPredefinedText;
@@ -162,6 +176,7 @@ partial class Form1
     private Label lblSpeedIndicator;
     private Label lblStatus;
     private Button btnStop;
+    private CheckBox chkHasCode;
 
     #endregion
 }

@@ -17,6 +17,7 @@ public class EscapeForSendKeysTests
     [InlineData('\t', "{TAB}")]
     [InlineData('\n', "{ENTER}")]
     [InlineData('A', "A")]
+    [InlineData('i', "i")]
     public void Escapes_Expected(char input, string expected)
     {
         var result = Form1.EscapeForSendKeys(input);

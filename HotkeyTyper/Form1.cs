@@ -22,6 +22,15 @@ public partial class Form1 : Form
     
     // Cancellation for in-progress typing
     private CancellationTokenSource? typingCts;
+    private readonly KeyboardInputSender inputSender = new();
+    
+    // Code mode flag (limits maximum speed)
+    private bool hasCodeMode = false;
+    
+    // Reliability heuristics for high-speed typing
+    private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
+    private const int ContextualPauseMs = 140; // Extra pause after space following certain boundary chars
+    private static readonly char[] ContextBoundaryChars = new[] { '>', ')', '}', ']' };
     
     // System tray components
     private NotifyIcon? trayIcon;
@@ -69,6 +78,11 @@ public partial class Form1 : Form
         // Update typing speed slider with loaded value
         if (sliderTypingSpeed != null)
         {
+            sliderTypingSpeed.Maximum = hasCodeMode ? 8 : 10;
+            if (typingSpeed > sliderTypingSpeed.Maximum)
+            {
+                typingSpeed = sliderTypingSpeed.Maximum;
+            }
             sliderTypingSpeed.Value = typingSpeed;
         }
         
@@ -76,6 +90,10 @@ public partial class Form1 : Form
         if (lblSpeedIndicator != null)
         {
             lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
+        }
+        if (chkHasCode != null)
+        {
+            chkHasCode.Checked = hasCodeMode;
         }
     }
     
@@ -97,6 +115,7 @@ public partial class Form1 : Form
                     {
                         typingSpeed = settings.TypingSpeed;
                     }
+                    hasCodeMode = settings.HasCode;
                 }
             }
         }
@@ -110,7 +129,7 @@ public partial class Form1 : Form
     {
         try
         {
-            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed };
+            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode };
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsFilePath, json);
         }
@@ -196,29 +215,63 @@ public partial class Form1 : Form
             // Flush any pending keys from the hotkey press
             SendKeys.Flush();
             
+            // Capture current foreground window so we can restore focus after initial delay
+            IntPtr targetWindow = GetForegroundWindow();
+
             // Wait for hotkey to be fully released and target window to be ready
             await Task.Delay(250, token);
+
+            // Attempt to restore focus to previously active window (ignore failures)
+            if (targetWindow != IntPtr.Zero)
+            {
+                _ = SetForegroundWindow(targetWindow);
+            }
             
             // Calculate delay based on typing speed (1=slowest, 10=fastest)
             int baseDelay = 310 - (typingSpeed * 30); // Base delay calculation
             int variation = Math.Max(10, baseDelay / 3); // Variation amount
             Random random = new Random();
             
-            foreach (char c in predefinedText)
+            char prev = '\0';
+            for (int index = 0; index < predefinedText.Length; index++)
             {
-                if (token.IsCancellationRequested)
+                if (token.IsCancellationRequested) break;
+                char c = predefinedText[index];
+
+                // Contextual pause heuristic: if previous char was a boundary and current is a space, pause before continuing
+                if (prev != '\0' && c == ' ' && ContextBoundaryChars.Contains(prev) && typingSpeed >= 7)
                 {
-                    break;
+                    try { await Task.Delay(ContextualPauseMs, token); } catch (OperationCanceledException) { break; }
                 }
-                string tokenStr = EscapeForSendKeys(c);
-                if (tokenStr.Length == 0)
+
+                // Use SendInput for improved reliability at high speeds.
+                // Fallback to SendKeys only if character requires special translation (currently none, Unicode covers most cases).
+                bool ok = inputSender.SendChar(c);
+                if (!ok)
                 {
-                    continue; // skip (e.g. CR in CRLF)
+                    // Fallback to SendKeys for this character
+                    string fallback = EscapeForSendKeys(c);
+                    if (fallback.Length > 0)
+                    {
+                        SendKeys.SendWait(fallback);
+                    }
                 }
-                SendKeys.SendWait(tokenStr);
-                SendKeys.Flush();
+
                 int delay = Math.Max(20, random.Next(Math.Max(10, baseDelay - variation), baseDelay + variation));
-                await Task.Delay(delay, token).ContinueWith(_ => { }); // swallow cancellation timing exception here
+                if (typingSpeed >= 8 && delay < MinFastDelayMs)
+                {
+                    delay = MinFastDelayMs; // enforce safety margin
+                }
+                try
+                {
+                    await Task.Delay(delay, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break; // exit loop promptly on cancellation
+                }
+
+                prev = c;
             }
         }
         catch (OperationCanceledException)
@@ -287,7 +340,32 @@ public partial class Form1 : Form
     {
         if (sender is TrackBar slider)
         {
+            if (hasCodeMode && slider.Value > 8)
+            {
+                slider.Value = 8; // clamp
+            }
             typingSpeed = slider.Value;
+            if (lblSpeedIndicator != null)
+            {
+                lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
+            }
+            SaveSettings();
+        }
+    }
+
+    private void ChkHasCode_CheckedChanged(object? sender, EventArgs e)
+    {
+        if (sender is CheckBox cb)
+        {
+            hasCodeMode = cb.Checked;
+            if (sliderTypingSpeed != null)
+            {
+                sliderTypingSpeed.Maximum = hasCodeMode ? 8 : 10;
+                if (sliderTypingSpeed.Value > sliderTypingSpeed.Maximum)
+                {
+                    sliderTypingSpeed.Value = sliderTypingSpeed.Maximum;
+                }
+            }
             if (lblSpeedIndicator != null)
             {
                 lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
@@ -358,4 +436,5 @@ public class AppSettings
 {
     public string PredefinedText { get; set; } = string.Empty;
     public int TypingSpeed { get; set; } = 5;
+    public bool HasCode { get; set; } = false;
 }

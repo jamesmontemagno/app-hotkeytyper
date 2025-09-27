@@ -139,6 +139,10 @@ public partial class Form1 : Form
         {
             btnDuplicateSnippet.Enabled = !fileSourceMode;
         }
+        if (btnRenameSnippet != null)
+        {
+            btnRenameSnippet.Enabled = !fileSourceMode;
+        }
         UpdateTooltips();
     }
     
@@ -152,70 +156,13 @@ public partial class Form1 : Form
                 var settings = JsonSerializer.Deserialize<AppSettings>(json);
                 if (settings != null)
                 {
-                    // Load snippets if they exist
-                    if (settings.Snippets.Count > 0)
-                    {
-                        snippets = settings.Snippets;
-                        activeSnippetId = settings.ActiveSnippetId;
-                        
-                        // Ensure active snippet is valid
-                        if (string.IsNullOrEmpty(activeSnippetId) || !snippets.Any(s => s.Id == activeSnippetId))
-                        {
-                            activeSnippetId = snippets.First().Id;
-                        }
-                    }
-                    else
-                    {
-                        // Migration from old format: create default snippet from PredefinedText
-                        var defaultContent = !string.IsNullOrEmpty(settings.PredefinedText) 
-                            ? settings.PredefinedText 
-                            : predefinedText;
-                            
-                        var defaultSnippet = new Snippet
-                        {
-                            Id = "default",
-                            Name = "Default",
-                            Content = defaultContent,
-                            LastUsed = DateTime.Now
-                        };
-                        
-                        snippets = new List<Snippet> { defaultSnippet };
-                        activeSnippetId = "default";
-                        
-                        // Save the migrated data
-                        SaveSettings();
-                    }
-                    
-                    // Load other settings
-                    if (settings.TypingSpeed > 0 && settings.TypingSpeed <= 10)
-                    {
-                        typingSpeed = settings.TypingSpeed;
-                    }
-                    hasCodeMode = settings.HasCode;
-                    if (settings.LastNonCodeSpeed >= 1 && settings.LastNonCodeSpeed <= 10)
-                    {
-                        lastNonCodeSpeed = settings.LastNonCodeSpeed;
-                    }
-                    fileSourceMode = settings.UseFileSource;
-                    if (!string.IsNullOrWhiteSpace(settings.FileSourcePath))
-                    {
-                        fileSourcePath = settings.FileSourcePath;
-                    }
+                    ApplySettingsWithMigration(settings);
                 }
             }
             else
             {
                 // Create default snippet for new installations
-                var defaultSnippet = new Snippet
-                {
-                    Id = "default",
-                    Name = "Default",
-                    Content = predefinedText,
-                    LastUsed = DateTime.Now
-                };
-                
-                snippets = new List<Snippet> { defaultSnippet };
-                activeSnippetId = "default";
+                CreateDefaultSnippet();
             }
         }
         catch (Exception ex)
@@ -225,18 +172,76 @@ public partial class Form1 : Form
             // Fallback to default snippet on error
             if (snippets.Count == 0)
             {
-                var defaultSnippet = new Snippet
-                {
-                    Id = "default",
-                    Name = "Default",
-                    Content = predefinedText,
-                    LastUsed = DateTime.Now
-                };
-                
-                snippets = new List<Snippet> { defaultSnippet };
-                activeSnippetId = "default";
+                CreateDefaultSnippet();
             }
         }
+    }
+    
+    private void ApplySettingsWithMigration(AppSettings settings)
+    {
+        // Load snippets if they exist
+        if (settings.Snippets.Count > 0)
+        {
+            snippets = settings.Snippets;
+            activeSnippetId = settings.ActiveSnippetId;
+            
+            // Ensure active snippet is valid
+            if (string.IsNullOrEmpty(activeSnippetId) || !snippets.Any(s => s.Id == activeSnippetId))
+            {
+                activeSnippetId = snippets.First().Id;
+            }
+        }
+        else
+        {
+            // Migration from old format: create default snippet from PredefinedText
+            var defaultContent = !string.IsNullOrEmpty(settings.PredefinedText) 
+                ? settings.PredefinedText 
+                : predefinedText;
+                
+            var defaultSnippet = new Snippet
+            {
+                Id = "default",
+                Name = "Default",
+                Content = defaultContent,
+                LastUsed = DateTime.Now
+            };
+            
+            snippets = new List<Snippet> { defaultSnippet };
+            activeSnippetId = "default";
+            
+            // Save the migrated data
+            SaveSettings();
+        }
+        
+        // Load other settings
+        if (settings.TypingSpeed > 0 && settings.TypingSpeed <= 10)
+        {
+            typingSpeed = settings.TypingSpeed;
+        }
+        hasCodeMode = settings.HasCode;
+        if (settings.LastNonCodeSpeed >= 1 && settings.LastNonCodeSpeed <= 10)
+        {
+            lastNonCodeSpeed = settings.LastNonCodeSpeed;
+        }
+        fileSourceMode = settings.UseFileSource;
+        if (!string.IsNullOrWhiteSpace(settings.FileSourcePath))
+        {
+            fileSourcePath = settings.FileSourcePath;
+        }
+    }
+    
+    private void CreateDefaultSnippet()
+    {
+        var defaultSnippet = new Snippet
+        {
+            Id = "default",
+            Name = "Default",
+            Content = predefinedText,
+            LastUsed = DateTime.Now
+        };
+        
+        snippets = new List<Snippet> { defaultSnippet };
+        activeSnippetId = "default";
     }
     
     private void SaveSettings()
@@ -675,6 +680,7 @@ public partial class Form1 : Form
             if (cmbSnippets != null) cmbSnippets.Enabled = !fileSourceMode;
             if (btnNewSnippet != null) btnNewSnippet.Enabled = !fileSourceMode;
             if (btnDuplicateSnippet != null) btnDuplicateSnippet.Enabled = !fileSourceMode;
+            if (btnRenameSnippet != null) btnRenameSnippet.Enabled = !fileSourceMode;
             if (btnDeleteSnippet != null) btnDeleteSnippet.Enabled = !fileSourceMode && snippets.Count > 1;
             SaveSettings();
         }
@@ -782,6 +788,44 @@ public partial class Form1 : Form
         if (lblStatus != null)
         {
             lblStatus.Text = $"Status: Duplicated snippet as '{name}'";
+            lblStatus.ForeColor = Color.Green;
+        }
+    }
+
+    private void BtnRenameSnippet_Click(object? sender, EventArgs e)
+    {
+        var currentSnippet = GetActiveSnippet();
+        if (currentSnippet == null) return;
+        
+        string? name = ShowInputDialog("Enter new name for snippet:", "Rename Snippet", currentSnippet.Name);
+            
+        if (string.IsNullOrWhiteSpace(name)) return;
+        
+        name = name.Trim();
+        
+        // Check if name is unchanged
+        if (name.Equals(currentSnippet.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return; // No change needed
+        }
+        
+        // Check for duplicate names (case-insensitive)
+        if (snippets.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A snippet with this name already exists. Please choose a different name.", 
+                "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        var oldName = currentSnippet.Name;
+        currentSnippet.Name = name;
+        
+        UpdateSnippetComboBox();
+        SaveSettings();
+        
+        if (lblStatus != null)
+        {
+            lblStatus.Text = $"Status: Renamed snippet from '{oldName}' to '{name}'";
             lblStatus.ForeColor = Color.Green;
         }
     }

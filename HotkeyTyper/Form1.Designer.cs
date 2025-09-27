@@ -73,7 +73,7 @@ partial class Form1
             Name = "btnNewSnippet",
             Text = "New",
             Location = new Point(335, 82),
-            Size = new Size(50, 25),
+            Size = new Size(35, 25),
             Font = new Font("Segoe UI", 8F)
         };
         btnNewSnippet.Click += BtnNewSnippet_Click;
@@ -82,18 +82,28 @@ partial class Form1
         {
             Name = "btnDuplicateSnippet",
             Text = "Copy",
-            Location = new Point(390, 82),
-            Size = new Size(45, 25),
+            Location = new Point(375, 82),
+            Size = new Size(35, 25),
             Font = new Font("Segoe UI", 8F)
         };
         btnDuplicateSnippet.Click += BtnDuplicateSnippet_Click;
+        
+        var btnRenameSnippet = new Button
+        {
+            Name = "btnRenameSnippet",
+            Text = "Ren",
+            Location = new Point(415, 82),
+            Size = new Size(30, 25),
+            Font = new Font("Segoe UI", 8F)
+        };
+        btnRenameSnippet.Click += BtnRenameSnippet_Click;
         
         var btnDeleteSnippet = new Button
         {
             Name = "btnDeleteSnippet",
             Text = "Del",
-            Location = new Point(440, 82),
-            Size = new Size(40, 25),
+            Location = new Point(450, 82),
+            Size = new Size(30, 25),
             Font = new Font("Segoe UI", 8F)
         };
         btnDeleteSnippet.Click += BtnDeleteSnippet_Click;
@@ -242,6 +252,7 @@ partial class Form1
             cmbSnippets,
             btnNewSnippet,
             btnDuplicateSnippet,
+            btnRenameSnippet,
             btnDeleteSnippet,
             txtPredefinedText, 
             lblTypingSpeed,
@@ -261,6 +272,7 @@ partial class Form1
         this.cmbSnippets = cmbSnippets;
         this.btnNewSnippet = btnNewSnippet;
         this.btnDuplicateSnippet = btnDuplicateSnippet;
+        this.btnRenameSnippet = btnRenameSnippet;
         this.btnDeleteSnippet = btnDeleteSnippet;
         this.txtPredefinedText = txtPredefinedText;
         this.sliderTypingSpeed = sliderTypingSpeed;
@@ -276,6 +288,7 @@ partial class Form1
     private ComboBox cmbSnippets;
     private Button btnNewSnippet;
     private Button btnDuplicateSnippet;
+    private Button btnRenameSnippet;
     private Button btnDeleteSnippet;
     private TextBox txtPredefinedText;
     private TrackBar sliderTypingSpeed;

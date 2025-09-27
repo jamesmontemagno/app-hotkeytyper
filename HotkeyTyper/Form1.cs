@@ -26,6 +26,8 @@ public partial class Form1 : Form
     
     // Code mode flag (limits maximum speed)
     private bool hasCodeMode = false;
+    private int lastNonCodeSpeed = 10; // persisted
+    private ToolTip? speedToolTip;
     
     // Reliability heuristics for high-speed typing
     private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
@@ -78,23 +80,27 @@ public partial class Form1 : Form
         // Update typing speed slider with loaded value
         if (sliderTypingSpeed != null)
         {
-            sliderTypingSpeed.Maximum = hasCodeMode ? 8 : 10;
-            if (typingSpeed > sliderTypingSpeed.Maximum)
+            if (sliderTypingSpeed is LimitedTrackBar lt)
             {
-                typingSpeed = sliderTypingSpeed.Maximum;
+                lt.SoftMax = hasCodeMode ? 8 : null;
             }
-            sliderTypingSpeed.Value = typingSpeed;
+            if (hasCodeMode && typingSpeed > 8)
+            {
+                typingSpeed = 8; // clamp from settings if needed
+            }
+            sliderTypingSpeed.Value = Math.Min(Math.Max(typingSpeed, sliderTypingSpeed.Minimum), sliderTypingSpeed.Maximum);
         }
         
         // Update speed indicator label
         if (lblSpeedIndicator != null)
         {
-            lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
+            lblSpeedIndicator.Text = GetSpeedText(typingSpeed) + (hasCodeMode ? " (code mode)" : string.Empty);
         }
         if (chkHasCode != null)
         {
             chkHasCode.Checked = hasCodeMode;
         }
+        UpdateTooltips();
     }
     
     private void LoadSettings()
@@ -116,6 +122,10 @@ public partial class Form1 : Form
                         typingSpeed = settings.TypingSpeed;
                     }
                     hasCodeMode = settings.HasCode;
+                    if (settings.LastNonCodeSpeed >= 1 && settings.LastNonCodeSpeed <= 10)
+                    {
+                        lastNonCodeSpeed = settings.LastNonCodeSpeed;
+                    }
                 }
             }
         }
@@ -129,7 +139,7 @@ public partial class Form1 : Form
     {
         try
         {
-            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode };
+            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode, LastNonCodeSpeed = lastNonCodeSpeed };
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsFilePath, json);
         }
@@ -347,7 +357,7 @@ public partial class Form1 : Form
             typingSpeed = slider.Value;
             if (lblSpeedIndicator != null)
             {
-                lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
+                lblSpeedIndicator.Text = GetSpeedText(typingSpeed) + (hasCodeMode ? " (code mode)" : string.Empty);
             }
             SaveSettings();
         }
@@ -358,19 +368,62 @@ public partial class Form1 : Form
         if (sender is CheckBox cb)
         {
             hasCodeMode = cb.Checked;
-            if (sliderTypingSpeed != null)
+            if (hasCodeMode)
             {
-                sliderTypingSpeed.Maximum = hasCodeMode ? 8 : 10;
-                if (sliderTypingSpeed.Value > sliderTypingSpeed.Maximum)
+                // entering code mode: remember current non-code speed
+                lastNonCodeSpeed = typingSpeed;
+                if (typingSpeed > 8 && sliderTypingSpeed != null)
                 {
-                    sliderTypingSpeed.Value = sliderTypingSpeed.Maximum;
+                    typingSpeed = 8;
+                    sliderTypingSpeed.Value = 8;
+                    NotifyClamped();
                 }
+            }
+            else
+            {
+                // leaving code mode: restore last non-code speed
+                typingSpeed = Math.Min(Math.Max(lastNonCodeSpeed, 1), 10);
+                if (sliderTypingSpeed != null)
+                {
+                    sliderTypingSpeed.Value = typingSpeed;
+                }
+            }
+            if (sliderTypingSpeed is LimitedTrackBar lt)
+            {
+                lt.SoftMax = hasCodeMode ? 8 : null;
+                sliderTypingSpeed.Invalidate();
             }
             if (lblSpeedIndicator != null)
             {
-                lblSpeedIndicator.Text = GetSpeedText(typingSpeed);
+                lblSpeedIndicator.Text = GetSpeedText(typingSpeed) + (hasCodeMode ? " (code mode)" : string.Empty);
             }
+            UpdateTooltips();
             SaveSettings();
+        }
+    }
+
+    private void NotifyClamped()
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Status: Speed limited in code mode";
+            lblStatus.ForeColor = Color.DarkOrange;
+        }
+    }
+
+    private void UpdateTooltips()
+    {
+        if (speedToolTip == null && sliderTypingSpeed != null)
+        {
+            speedToolTip = new ToolTip();
+        }
+        if (speedToolTip != null && sliderTypingSpeed != null && lblSpeedIndicator != null)
+        {
+            string msg = hasCodeMode
+                ? "Code mode: max speed limited to Fast (8) to improve reliability while typing code."
+                : "Normal mode: speeds 1 (Very Slow) to 10 (Very Fast).";
+            speedToolTip.SetToolTip(sliderTypingSpeed, msg);
+            speedToolTip.SetToolTip(lblSpeedIndicator, msg);
         }
     }
     
@@ -437,4 +490,5 @@ public class AppSettings
     public string PredefinedText { get; set; } = string.Empty;
     public int TypingSpeed { get; set; } = 5;
     public bool HasCode { get; set; } = false;
+    public int LastNonCodeSpeed { get; set; } = 10;
 }

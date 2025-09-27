@@ -69,8 +69,8 @@ partial class Form1
             Font = new Font("Segoe UI", 9F)
         };
         
-        // Typing speed slider
-        var sliderTypingSpeed = new TrackBar
+        // Typing speed slider (custom for soft limit visuals)
+        var sliderTypingSpeed = new LimitedTrackBar
         {
             Name = "sliderTypingSpeed",
             Location = new Point(105, 225),
@@ -79,7 +79,8 @@ partial class Form1
             Maximum = 10,
             Value = typingSpeed,
             TickFrequency = 1,
-            TickStyle = TickStyle.BottomRight
+            TickStyle = TickStyle.None,
+            SoftMax = hasCodeMode ? 8 : null
         };
         sliderTypingSpeed.ValueChanged += TypingSpeedSlider_ValueChanged;
         

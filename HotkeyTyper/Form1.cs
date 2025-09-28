@@ -156,30 +156,28 @@ public partial class Form1 : Form
                 var settings = JsonSerializer.Deserialize<AppSettings>(json);
                 if (settings != null)
                 {
-                    ApplySettingsWithMigration(settings);
+                    ApplySettings(settings);
+                }
+                else
+                {
+                    CreateDefaultSnippet();
                 }
             }
             else
             {
-                // Create default snippet for new installations
                 CreateDefaultSnippet();
             }
         }
-        catch (Exception ex)
+        catch
         {
-            MessageBox.Show($"Error loading settings: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            
-            // Fallback to default snippet on error
-            if (snippets.Count == 0)
-            {
-                CreateDefaultSnippet();
-            }
+            // Ignore any exceptions and create default snippet with new schema
+            CreateDefaultSnippet();
         }
     }
     
-    private void ApplySettingsWithMigration(AppSettings settings)
+    private void ApplySettings(AppSettings settings)
     {
-        // Load snippets if they exist
+        // Use new snippet format
         if (settings.Snippets.Count > 0)
         {
             snippets = settings.Snippets;
@@ -193,24 +191,8 @@ public partial class Form1 : Form
         }
         else
         {
-            // Migration from old format: create default snippet from PredefinedText
-            var defaultContent = !string.IsNullOrEmpty(settings.PredefinedText) 
-                ? settings.PredefinedText 
-                : predefinedText;
-                
-            var defaultSnippet = new Snippet
-            {
-                Id = "default",
-                Name = "Default",
-                Content = defaultContent,
-                LastUsed = DateTime.Now
-            };
-            
-            snippets = new List<Snippet> { defaultSnippet };
-            activeSnippetId = "default";
-            
-            // Save the migrated data
-            SaveSettings();
+            // Create default snippet
+            CreateDefaultSnippet();
         }
         
         // Load other settings
@@ -1030,13 +1012,8 @@ public class Snippet
 // Settings class for JSON serialization
 public class AppSettings
 {
-    // Legacy property for backward compatibility
-    public string PredefinedText { get; set; } = string.Empty;
-    
-    // New snippet support
     public List<Snippet> Snippets { get; set; } = new();
     public string ActiveSnippetId { get; set; } = string.Empty;
-    
     public int TypingSpeed { get; set; } = 5;
     public bool HasCode { get; set; } = false;
     public int LastNonCodeSpeed { get; set; } = 10;

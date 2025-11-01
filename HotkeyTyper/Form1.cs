@@ -14,9 +14,6 @@ public partial class Form1 : Form
     // Settings file path
     private readonly string settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
     
-    // Predefined text to type
-    private string predefinedText = "Hello, this is my predefined text!";
-    
     // Typing speed (1 = slowest, 10 = fastest)
     private int typingSpeed = 5;
     
@@ -32,6 +29,10 @@ public partial class Form1 : Form
     // File source mode
     private bool fileSourceMode = false;
     private string fileSourcePath = string.Empty;
+    
+    // Snippet management
+    private List<TextSnippet> snippets = new();
+    private string? activeSnippetId;
     
     // Reliability heuristics for high-speed typing
     private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
@@ -79,10 +80,11 @@ public partial class Form1 : Form
     
     private void UpdateUIFromSettings()
     {
-        // Update text box with loaded predefined text
+        // Update text box with loaded active snippet content
         if (txtPredefinedText != null)
         {
-            txtPredefinedText.Text = predefinedText;
+            var activeSnippet = GetActiveSnippet();
+            txtPredefinedText.Text = activeSnippet?.Content ?? string.Empty;
         }
         
         // Update typing speed slider with loaded value
@@ -138,10 +140,6 @@ public partial class Form1 : Form
                 var settings = JsonSerializer.Deserialize<AppSettings>(json);
                 if (settings != null)
                 {
-                    if (!string.IsNullOrEmpty(settings.PredefinedText))
-                    {
-                        predefinedText = settings.PredefinedText;
-                    }
                     if (settings.TypingSpeed > 0 && settings.TypingSpeed <= 10)
                     {
                         typingSpeed = settings.TypingSpeed;
@@ -156,20 +154,84 @@ public partial class Form1 : Form
                     {
                         fileSourcePath = settings.FileSourcePath;
                     }
+                    
+                    // Migration: Convert old single PredefinedText to snippet if no snippets exist
+                    if (settings.Snippets == null || settings.Snippets.Count == 0)
+                    {
+                        string contentToMigrate = !string.IsNullOrEmpty(settings.PredefinedText) 
+                            ? settings.PredefinedText 
+                            : "Hello, this is my predefined text!";
+                        snippets = new List<TextSnippet>
+                        {
+                            new TextSnippet
+                            {
+                                Id = "default",
+                                Name = "Default",
+                                Content = contentToMigrate,
+                                LastUsed = DateTime.Now
+                            }
+                        };
+                        activeSnippetId = "default";
+                    }
+                    else
+                    {
+                        snippets = settings.Snippets;
+                        activeSnippetId = settings.ActiveSnippetId;
+                        
+                        // Validate active snippet exists
+                        if (string.IsNullOrEmpty(activeSnippetId) || !snippets.Any(s => s.Id == activeSnippetId))
+                        {
+                            activeSnippetId = snippets.FirstOrDefault()?.Id;
+                        }
+                    }
                 }
+                else
+                {
+                    InitializeDefaultSnippet();
+                }
+            }
+            else
+            {
+                InitializeDefaultSnippet();
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error loading settings: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            InitializeDefaultSnippet();
         }
+    }
+    
+    private void InitializeDefaultSnippet()
+    {
+        snippets = new List<TextSnippet>
+        {
+            new TextSnippet
+            {
+                Id = "default",
+                Name = "Default",
+                Content = "Hello, this is my predefined text!",
+                LastUsed = DateTime.Now
+            }
+        };
+        activeSnippetId = "default";
     }
     
     private void SaveSettings()
     {
         try
         {
-            var settings = new AppSettings { PredefinedText = predefinedText, TypingSpeed = typingSpeed, HasCode = hasCodeMode, LastNonCodeSpeed = lastNonCodeSpeed, UseFileSource = fileSourceMode, FileSourcePath = fileSourcePath };
+            var settings = new AppSettings 
+            { 
+                PredefinedText = string.Empty, // Deprecated but kept for compatibility
+                TypingSpeed = typingSpeed, 
+                HasCode = hasCodeMode, 
+                LastNonCodeSpeed = lastNonCodeSpeed, 
+                UseFileSource = fileSourceMode, 
+                FileSourcePath = fileSourcePath,
+                Snippets = snippets,
+                ActiveSnippetId = activeSnippetId
+            };
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsFilePath, json);
         }
@@ -272,7 +334,8 @@ public partial class Form1 : Form
         }
         else
         {
-            contentToType = txtPredefinedText?.Text ?? predefinedText;
+            var activeSnippet = GetActiveSnippet();
+            contentToType = activeSnippet?.Content ?? string.Empty;
         }
 
         // Update UI state
@@ -423,12 +486,17 @@ public partial class Form1 : Form
 
         if (txtPredefinedText != null)
         {
-            predefinedText = txtPredefinedText.Text;
-            SaveSettings();
-            if (lblStatus != null)
+            var activeSnippet = GetActiveSnippet();
+            if (activeSnippet != null)
             {
-                lblStatus.Text = "Status: Text saved";
-                lblStatus.ForeColor = Color.Green;
+                activeSnippet.Content = txtPredefinedText.Text;
+                activeSnippet.LastUsed = DateTime.Now;
+                SaveSettings();
+                if (lblStatus != null)
+                {
+                    lblStatus.Text = "Status: Snippet saved";
+                    lblStatus.ForeColor = Color.Green;
+                }
             }
         }
     }
@@ -625,6 +693,88 @@ public partial class Form1 : Form
         }
         base.Dispose(disposing);
     }
+    
+    // Snippet management methods
+    
+    private TextSnippet? GetActiveSnippet()
+    {
+        return snippets.FirstOrDefault(s => s.Id == activeSnippetId);
+    }
+    
+    private void CreateNewSnippet()
+    {
+        string newId = Guid.NewGuid().ToString();
+        var newSnippet = new TextSnippet
+        {
+            Id = newId,
+            Name = $"Snippet {snippets.Count + 1}",
+            Content = string.Empty,
+            LastUsed = DateTime.Now
+        };
+        snippets.Add(newSnippet);
+        activeSnippetId = newId;
+        SaveSettings();
+    }
+    
+    private void DuplicateActiveSnippet()
+    {
+        var current = GetActiveSnippet();
+        if (current == null) return;
+        
+        string newId = Guid.NewGuid().ToString();
+        var duplicate = new TextSnippet
+        {
+            Id = newId,
+            Name = $"{current.Name} (Copy)",
+            Content = current.Content,
+            LastUsed = DateTime.Now
+        };
+        snippets.Add(duplicate);
+        activeSnippetId = newId;
+        SaveSettings();
+    }
+    
+    private void RenameActiveSnippet(string newName)
+    {
+        var current = GetActiveSnippet();
+        if (current == null) return;
+        
+        // Validate: trim and check uniqueness (case-insensitive)
+        newName = newName.Trim();
+        if (string.IsNullOrEmpty(newName))
+        {
+            MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        if (snippets.Any(s => s.Id != current.Id && string.Equals(s.Name, newName, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        current.Name = newName;
+        SaveSettings();
+    }
+    
+    private void DeleteActiveSnippet()
+    {
+        if (snippets.Count <= 1)
+        {
+            MessageBox.Show("Cannot delete the last remaining snippet.", "Delete Not Allowed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        var current = GetActiveSnippet();
+        if (current == null) return;
+        
+        var result = MessageBox.Show($"Delete snippet '{current.Name}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (result != DialogResult.Yes) return;
+        
+        snippets.Remove(current);
+        activeSnippetId = snippets.FirstOrDefault()?.Id;
+        SaveSettings();
+    }
 
     /// <summary>
     /// Ensures the global hotkey is (re)registered whenever the form's native handle is created.
@@ -676,4 +826,17 @@ public class AppSettings
     public int LastNonCodeSpeed { get; set; } = 10;
     public bool UseFileSource { get; set; } = false;
     public string FileSourcePath { get; set; } = string.Empty;
+    
+    // New snippet-based system
+    public List<TextSnippet>? Snippets { get; set; }
+    public string? ActiveSnippetId { get; set; }
+}
+
+// Represents a single text snippet
+public class TextSnippet
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public DateTime LastUsed { get; set; } = DateTime.MinValue;
 }

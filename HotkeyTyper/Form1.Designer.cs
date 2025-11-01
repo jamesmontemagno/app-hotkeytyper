@@ -51,7 +51,7 @@ partial class Form1
         var txtPredefinedText = new TextBox
         {
             Name = "txtPredefinedText",
-            Text = predefinedText, // This will show the loaded text
+            Text = string.Empty, // Content will be loaded from active snippet
             // Shifted down slightly to keep spacing after taller instructions label
             Location = new Point(20, 85),
             Size = new Size(460, 135), // Increased by 50% from 90 to 135

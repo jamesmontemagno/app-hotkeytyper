@@ -11,6 +11,11 @@ public partial class Form1 : Form
     private const int WM_HOTKEY = 0x0312;
     private const int HOTKEY_ID = 1;
     
+    // Snippet constants
+    private const string DefaultSnippetId = "default";
+    private const string DefaultSnippetName = "Default";
+    private const string DefaultSnippetContent = "Hello, this is my predefined text!";
+    
     // Settings file path
     private readonly string settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
     
@@ -33,6 +38,7 @@ public partial class Form1 : Form
     // Snippet management
     private List<TextSnippet> snippets = new();
     private string? activeSnippetId;
+    private int nextSnippetNumber = 1; // Tracks next snippet number for unique naming
     
     // Reliability heuristics for high-speed typing
     private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
@@ -180,18 +186,18 @@ public partial class Form1 : Form
                     {
                         string contentToMigrate = !string.IsNullOrEmpty(settings.PredefinedText) 
                             ? settings.PredefinedText 
-                            : "Hello, this is my predefined text!";
+                            : DefaultSnippetContent;
                         snippets = new List<TextSnippet>
                         {
                             new TextSnippet
                             {
-                                Id = "default",
-                                Name = "Default",
+                                Id = DefaultSnippetId,
+                                Name = DefaultSnippetName,
                                 Content = contentToMigrate,
                                 LastUsed = DateTime.Now
                             }
                         };
-                        activeSnippetId = "default";
+                        activeSnippetId = DefaultSnippetId;
                     }
                     else
                     {
@@ -203,6 +209,9 @@ public partial class Form1 : Form
                         {
                             activeSnippetId = snippets.FirstOrDefault()?.Id;
                         }
+                        
+                        // Update snippet counter for unique naming
+                        UpdateSnippetCounter();
                     }
                 }
                 else
@@ -222,19 +231,38 @@ public partial class Form1 : Form
         }
     }
     
+    private void UpdateSnippetCounter()
+    {
+        // Find highest numbered snippet to ensure unique naming
+        int maxNum = 0;
+        foreach (var snippet in snippets)
+        {
+            if (snippet.Name.StartsWith("Snippet ", StringComparison.OrdinalIgnoreCase))
+            {
+                string numPart = snippet.Name.Substring(8);
+                if (int.TryParse(numPart, out int num))
+                {
+                    maxNum = Math.Max(maxNum, num);
+                }
+            }
+        }
+        nextSnippetNumber = maxNum + 1;
+    }
+    
     private void InitializeDefaultSnippet()
     {
         snippets = new List<TextSnippet>
         {
             new TextSnippet
             {
-                Id = "default",
-                Name = "Default",
-                Content = "Hello, this is my predefined text!",
+                Id = DefaultSnippetId,
+                Name = DefaultSnippetName,
+                Content = DefaultSnippetContent,
                 LastUsed = DateTime.Now
             }
         };
-        activeSnippetId = "default";
+        activeSnippetId = DefaultSnippetId;
+        nextSnippetNumber = 2; // Next snippet will be "Snippet 2"
     }
     
     private void SaveSettings()
@@ -506,17 +534,12 @@ public partial class Form1 : Form
 
         if (txtPredefinedText != null)
         {
-            var activeSnippet = GetActiveSnippet();
-            if (activeSnippet != null)
+            SaveActiveSnippetContent();
+            SaveSettings();
+            if (lblStatus != null)
             {
-                activeSnippet.Content = txtPredefinedText.Text;
-                activeSnippet.LastUsed = DateTime.Now;
-                SaveSettings();
-                if (lblStatus != null)
-                {
-                    lblStatus.Text = "Status: Snippet saved";
-                    lblStatus.ForeColor = Color.Green;
-                }
+                lblStatus.Text = "Status: Snippet saved";
+                lblStatus.ForeColor = Color.Green;
             }
         }
     }
@@ -700,11 +723,7 @@ public partial class Form1 : Form
         if (index >= 0 && index < snippets.Count)
         {
             // Save current snippet content before switching
-            var previousSnippet = GetActiveSnippet();
-            if (previousSnippet != null && txtPredefinedText != null)
-            {
-                previousSnippet.Content = txtPredefinedText.Text;
-            }
+            SaveActiveSnippetContent();
             
             // Switch to new snippet
             activeSnippetId = snippets[index].Id;
@@ -805,13 +824,23 @@ public partial class Form1 : Form
         return snippets.FirstOrDefault(s => s.Id == activeSnippetId);
     }
     
+    private void SaveActiveSnippetContent()
+    {
+        var activeSnippet = GetActiveSnippet();
+        if (activeSnippet != null && txtPredefinedText != null)
+        {
+            activeSnippet.Content = txtPredefinedText.Text;
+            activeSnippet.LastUsed = DateTime.Now;
+        }
+    }
+    
     private void CreateNewSnippet()
     {
         string newId = Guid.NewGuid().ToString();
         var newSnippet = new TextSnippet
         {
             Id = newId,
-            Name = $"Snippet {snippets.Count + 1}",
+            Name = $"Snippet {nextSnippetNumber++}",
             Content = string.Empty,
             LastUsed = DateTime.Now
         };

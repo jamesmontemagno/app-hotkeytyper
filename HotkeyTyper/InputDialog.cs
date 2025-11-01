@@ -59,8 +59,7 @@ internal class InputDialog : Form
         CancelButton = btnCancel;
         
         // Select all text when dialog opens
-        txtInput.SelectAll();
-        txtInput.Focus();
+        Load += (s, e) => txtInput.SelectAll();
     }
     
     /// <summary>

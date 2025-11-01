@@ -25,7 +25,7 @@ partial class Form1
         
         // Form properties
         AutoScaleMode = AutoScaleMode.Font;
-    ClientSize = new Size(500, 540); // Increased further to prevent clipping after additional downward shifts
+        ClientSize = new Size(500, 570);
         Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
         StartPosition = FormStartPosition.CenterScreen;
         MaximizeBox = false;
@@ -40,21 +40,71 @@ partial class Form1
         // Label for instructions
         var lblInstructions = new Label
         {
-            Text = "Configure your predefined text below.\nPress CTRL+SHIFT+1 anywhere to type it:",
+            Text = "Select or manage snippets below.\nPress CTRL+SHIFT+1 anywhere to type active snippet:",
             Location = new Point(20, 20),
             // Increased height to ensure second line isn't clipped on various DPI scales
             Size = new Size(460, 55),
             Font = new Font("Segoe UI", 10F, FontStyle.Regular)
         };
         
-        // TextBox for predefined text
+        // Snippet selector label
+        var lblSnippet = new Label
+        {
+            Text = "Snippet:",
+            Location = new Point(20, 85),
+            Size = new Size(60, 20),
+            Font = new Font("Segoe UI", 9F)
+        };
+        
+        // Snippet selector ComboBox
+        var cmbSnippets = new ComboBox
+        {
+            Name = "cmbSnippets",
+            Location = new Point(85, 82),
+            Size = new Size(200, 23),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font("Segoe UI", 9F)
+        };
+        cmbSnippets.SelectedIndexChanged += CmbSnippets_SelectedIndexChanged;
+        
+        // Snippet management buttons
+        var btnNewSnippet = new Button
+        {
+            Name = "btnNewSnippet",
+            Text = "New",
+            Location = new Point(295, 81),
+            Size = new Size(55, 25),
+            Font = new Font("Segoe UI", 9F)
+        };
+        btnNewSnippet.Click += BtnNewSnippet_Click;
+        
+        var btnDuplicateSnippet = new Button
+        {
+            Name = "btnDuplicateSnippet",
+            Text = "Dup",
+            Location = new Point(355, 81),
+            Size = new Size(45, 25),
+            Font = new Font("Segoe UI", 9F)
+        };
+        btnDuplicateSnippet.Click += BtnDuplicateSnippet_Click;
+        
+        var btnRenameSnippet = new Button
+        {
+            Name = "btnRenameSnippet",
+            Text = "Rename",
+            Location = new Point(405, 81),
+            Size = new Size(70, 25),
+            Font = new Font("Segoe UI", 9F)
+        };
+        btnRenameSnippet.Click += BtnRenameSnippet_Click;
+        
+        // TextBox for predefined text (moved down to make room for snippet controls)
         var txtPredefinedText = new TextBox
         {
             Name = "txtPredefinedText",
             Text = string.Empty, // Content will be loaded from active snippet
-            // Shifted down slightly to keep spacing after taller instructions label
-            Location = new Point(20, 85),
-            Size = new Size(460, 135), // Increased by 50% from 90 to 135
+            Location = new Point(20, 115),
+            Size = new Size(460, 135),
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
             Font = new Font("Segoe UI", 9F)
@@ -64,7 +114,7 @@ partial class Form1
         var lblTypingSpeed = new Label
         {
             Text = "Typing Speed:",
-            Location = new Point(20, 230),
+            Location = new Point(20, 260),
             Size = new Size(80, 20),
             Font = new Font("Segoe UI", 9F)
         };
@@ -73,7 +123,7 @@ partial class Form1
         var sliderTypingSpeed = new LimitedTrackBar
         {
             Name = "sliderTypingSpeed",
-            Location = new Point(105, 225),
+            Location = new Point(105, 255),
             Size = new Size(200, 45),
             Minimum = 1,
             Maximum = 10,
@@ -89,7 +139,7 @@ partial class Form1
         {
             Name = "lblSpeedIndicator",
             Text = "Normal", // Default value, will be updated after load
-            Location = new Point(315, 230),
+            Location = new Point(315, 260),
             Size = new Size(100, 20),
             Font = new Font("Segoe UI", 9F, FontStyle.Italic)
         };
@@ -99,7 +149,7 @@ partial class Form1
         {
             Name = "chkHasCode",
             Text = "Has Code (limit speed)",
-            Location = new Point(20, 290), // Further down to avoid any overlap/cutoff
+            Location = new Point(20, 320),
             Size = new Size(180, 20),
             Checked = hasCodeMode,
             Font = new Font("Segoe UI", 9F)
@@ -111,7 +161,7 @@ partial class Form1
         {
             Name = "chkUseFile",
             Text = "Use File (.md/.txt)",
-            Location = new Point(220, 290), // Align with Has Code new Y
+            Location = new Point(220, 320),
             Size = new Size(150, 20),
             Checked = false,
             Font = new Font("Segoe UI", 9F)
@@ -122,7 +172,7 @@ partial class Form1
         var txtFilePath = new TextBox
         {
             Name = "txtFilePath",
-            Location = new Point(20, 320), // Shifted down to maintain spacing under checkboxes
+            Location = new Point(20, 350),
             Size = new Size(370, 23),
             Text = string.Empty,
             Enabled = false,
@@ -135,7 +185,7 @@ partial class Form1
         {
             Name = "btnBrowseFile",
             Text = "Browse…",
-            Location = new Point(400, 318), // Align with file path new Y
+            Location = new Point(400, 348),
             Size = new Size(80, 26),
             Enabled = false,
             Font = new Font("Segoe UI", 9F)
@@ -146,17 +196,28 @@ partial class Form1
         var btnUpdate = new Button
         {
             Text = "Save",
-            Location = new Point(20, 355), // Shifted further down
+            Location = new Point(20, 385),
             Size = new Size(100, 30),
             Font = new Font("Segoe UI", 9F)
         };
         btnUpdate.Click += BtnUpdate_Click;
         
+        // Delete snippet button
+        var btnDeleteSnippet = new Button
+        {
+            Name = "btnDeleteSnippet",
+            Text = "Delete Snippet",
+            Location = new Point(130, 385),
+            Size = new Size(110, 30),
+            Font = new Font("Segoe UI", 9F)
+        };
+        btnDeleteSnippet.Click += BtnDeleteSnippet_Click;
+        
         // Minimize to tray button
         var btnMinimize = new Button
         {
             Text = "Minimize to Tray",
-            Location = new Point(20, 395), // Shifted down with rest
+            Location = new Point(20, 425),
             // Widened to avoid text clipping on 125%/150% DPI
             Size = new Size(150, 30),
             Font = new Font("Segoe UI", 9F)
@@ -168,7 +229,7 @@ partial class Form1
         {
             Name = "btnStop",
             Text = "Stop Typing",
-            Location = new Point(20, 435), // Shifted down to maintain spacing
+            Location = new Point(20, 465),
             Size = new Size(150, 30),
             Font = new Font("Segoe UI", 9F),
             Enabled = false // Enabled only while typing is in progress
@@ -179,7 +240,7 @@ partial class Form1
         var lblStatus = new Label
         {
             Text = "Status: Hotkey CTRL+SHIFT+1 is active",
-            Location = new Point(150, 370), // Repositioned for new layout
+            Location = new Point(150, 400),
             Size = new Size(320, 20),
             Font = new Font("Segoe UI", 9F),
             ForeColor = Color.Green
@@ -187,7 +248,12 @@ partial class Form1
         
         // Add controls to form
         Controls.AddRange(new Control[] { 
-            lblInstructions, 
+            lblInstructions,
+            lblSnippet,
+            cmbSnippets,
+            btnNewSnippet,
+            btnDuplicateSnippet,
+            btnRenameSnippet,
             txtPredefinedText, 
             lblTypingSpeed,
             sliderTypingSpeed,
@@ -196,13 +262,15 @@ partial class Form1
             chkUseFile,
             txtFilePath,
             btnBrowseFile,
-            btnUpdate, 
+            btnUpdate,
+            btnDeleteSnippet,
             btnMinimize,
             btnStop,
             lblStatus
         });
         
         // Store references for later use
+        this.cmbSnippets = cmbSnippets;
         this.txtPredefinedText = txtPredefinedText;
         this.sliderTypingSpeed = sliderTypingSpeed;
         this.lblSpeedIndicator = lblSpeedIndicator;
@@ -214,6 +282,7 @@ partial class Form1
         this.btnBrowseFile = btnBrowseFile;
     }
     
+    private ComboBox cmbSnippets;
     private TextBox txtPredefinedText;
     private TrackBar sliderTypingSpeed;
     private Label lblSpeedIndicator;

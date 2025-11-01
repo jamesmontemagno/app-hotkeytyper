@@ -80,6 +80,26 @@ public partial class Form1 : Form
     
     private void UpdateUIFromSettings()
     {
+        // Update snippet ComboBox
+        if (cmbSnippets != null)
+        {
+            cmbSnippets.Items.Clear();
+            foreach (var snippet in snippets)
+            {
+                cmbSnippets.Items.Add(snippet.Name);
+            }
+            
+            var activeSnippet = GetActiveSnippet();
+            if (activeSnippet != null)
+            {
+                int index = snippets.IndexOf(activeSnippet);
+                if (index >= 0)
+                {
+                    cmbSnippets.SelectedIndex = index;
+                }
+            }
+        }
+        
         // Update text box with loaded active snippet content
         if (txtPredefinedText != null)
         {
@@ -667,6 +687,90 @@ public partial class Form1 : Form
             {
                 btnStop.Enabled = false;
             }
+        }
+    }
+    
+    // Snippet UI event handlers
+    
+    private void CmbSnippets_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (cmbSnippets == null) return;
+        
+        int index = cmbSnippets.SelectedIndex;
+        if (index >= 0 && index < snippets.Count)
+        {
+            // Save current snippet content before switching
+            var previousSnippet = GetActiveSnippet();
+            if (previousSnippet != null && txtPredefinedText != null)
+            {
+                previousSnippet.Content = txtPredefinedText.Text;
+            }
+            
+            // Switch to new snippet
+            activeSnippetId = snippets[index].Id;
+            
+            // Load new snippet content
+            if (txtPredefinedText != null)
+            {
+                txtPredefinedText.Text = snippets[index].Content;
+            }
+            
+            SaveSettings();
+        }
+    }
+    
+    private void BtnNewSnippet_Click(object? sender, EventArgs e)
+    {
+        CreateNewSnippet();
+        UpdateUIFromSettings();
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Status: New snippet created";
+            lblStatus.ForeColor = Color.Green;
+        }
+    }
+    
+    private void BtnDuplicateSnippet_Click(object? sender, EventArgs e)
+    {
+        DuplicateActiveSnippet();
+        UpdateUIFromSettings();
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Status: Snippet duplicated";
+            lblStatus.ForeColor = Color.Green;
+        }
+    }
+    
+    private void BtnRenameSnippet_Click(object? sender, EventArgs e)
+    {
+        var current = GetActiveSnippet();
+        if (current == null) return;
+        
+        string? newName = Microsoft.VisualBasic.Interaction.InputBox(
+            "Enter new name for snippet:",
+            "Rename Snippet",
+            current.Name);
+        
+        if (!string.IsNullOrWhiteSpace(newName))
+        {
+            RenameActiveSnippet(newName);
+            UpdateUIFromSettings();
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: Snippet renamed";
+                lblStatus.ForeColor = Color.Green;
+            }
+        }
+    }
+    
+    private void BtnDeleteSnippet_Click(object? sender, EventArgs e)
+    {
+        DeleteActiveSnippet();
+        UpdateUIFromSettings();
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Status: Snippet deleted";
+            lblStatus.ForeColor = Color.Green;
         }
     }
     

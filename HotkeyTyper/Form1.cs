@@ -746,7 +746,7 @@ public partial class Form1 : Form
         var current = GetActiveSnippet();
         if (current == null) return;
         
-        string? newName = Microsoft.VisualBasic.Interaction.InputBox(
+        string? newName = InputDialog.Show(
             "Enter new name for snippet:",
             "Rename Snippet",
             current.Name);

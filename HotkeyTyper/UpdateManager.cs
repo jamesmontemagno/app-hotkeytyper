@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using Updatum;
 
@@ -13,7 +14,6 @@ internal static class UpdateManager
         // Since we're .NET single-file app, Updatum will auto-detect .exe
         // No need for AssetRegexPattern as default works (win-x64)
         FetchOnlyLatestRelease = true, // Saves API tokens
-        InstallUpdateSingleFileExecutableName = "HotkeyTyper_v{0}", // Fallback if needed
     };
 
     /// <summary>
@@ -63,25 +63,38 @@ internal static class UpdateManager
     {
         try
         {
+            PropertyChangedEventHandler? handler = null;
             if (progress != null)
             {
-                AppUpdater.PropertyChanged += (s, e) =>
+                handler = (s, e) =>
                 {
                     if (e.PropertyName == nameof(UpdatumManager.DownloadedPercentage))
                     {
                         progress.Report(AppUpdater.DownloadedPercentage);
                     }
                 };
+                AppUpdater.PropertyChanged += handler;
             }
 
-            var download = await AppUpdater.DownloadUpdateAsync();
-            if (download == null) return false;
+            try
+            {
+                var download = await AppUpdater.DownloadUpdateAsync();
+                if (download == null) return false;
 
-            // Save settings before upgrade
-            // (Already handled by existing code)
+                // Save settings before upgrade
+                // (Already handled by existing code)
 
-            await AppUpdater.InstallUpdateAsync(download);
-            return true; // Won't actually return - app will restart
+                await AppUpdater.InstallUpdateAsync(download);
+                return true; // Won't actually return - app will restart
+            }
+            finally
+            {
+                // Unregister handler to prevent memory leaks
+                if (handler != null)
+                {
+                    AppUpdater.PropertyChanged -= handler;
+                }
+            }
         }
         catch (Exception ex)
         {

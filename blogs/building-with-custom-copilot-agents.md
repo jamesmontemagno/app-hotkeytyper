@@ -160,6 +160,225 @@ The agent reorganized the layout following WinForms best practices:
 **Even Better Documentation**:
 The agent included detailed diagrams of the UI layout directly in the PR description, making the implementation immediately understandable.
 
+## Key Code Differences: Before and After
+
+Let me show you some concrete examples of the improvements the WinForms Expert agent made:
+
+### 1. InputDialog Helper Class
+
+**PR #7 (Without WinForms Expert)**: Used an inline dialog creation pattern with repetitive code in each button handler.
+
+**PR #8 (With WinForms Expert)**: Created a dedicated, reusable `InputDialog` class following WinForms best practices:
+
+```csharp
+internal class InputDialog : Form
+{
+    private readonly TextBox txtInput;
+    private readonly Button btnOK;
+    private readonly Button btnCancel;
+    
+    public string InputText => txtInput.Text;
+    
+    public InputDialog(string prompt, string title, string defaultValue = "")
+    {
+        Text = title;
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        StartPosition = FormStartPosition.CenterParent;
+        MaximizeBox = false;
+        MinimizeBox = false;
+        ClientSize = new Size(350, 120);
+        
+        // Control setup...
+        
+        // Select all text when dialog opens
+        Load += (s, e) => txtInput.SelectAll();
+    }
+    
+    public static string? Show(string prompt, string title, string defaultValue = "")
+    {
+        using var dialog = new InputDialog(prompt, title, defaultValue);
+        return dialog.ShowDialog() == DialogResult.OK ? dialog.InputText : null;
+    }
+}
+```
+
+This is a textbook WinForms pattern: proper disposal with `using`, nullable return type, static factory method, and proper dialog configuration.
+
+### 2. Settings Migration Pattern
+
+**PR #7 (Without WinForms Expert)**: Used a "fresh start" approach that ignored existing settings if loading failed.
+
+**PR #8 (With WinForms Expert)**: Implemented proper backward-compatible migration:
+
+```csharp
+// Migration: Convert old single PredefinedText to snippet if no snippets exist
+if (settings.Snippets == null || settings.Snippets.Count == 0)
+{
+    string contentToMigrate = !string.IsNullOrEmpty(settings.PredefinedText) 
+        ? settings.PredefinedText 
+        : DefaultSnippetContent;
+    snippets = new List<TextSnippet>
+    {
+        new TextSnippet
+        {
+            Id = DefaultSnippetId,
+            Name = DefaultSnippetName,
+            Content = contentToMigrate,
+            LastUsed = DateTime.Now
+        }
+    };
+    activeSnippetId = DefaultSnippetId;
+}
+else
+{
+    snippets = settings.Snippets;
+    activeSnippetId = settings.ActiveSnippetId;
+    
+    // Validate active snippet exists
+    if (string.IsNullOrEmpty(activeSnippetId) || 
+        !snippets.Any(s => s.Id == activeSnippetId))
+    {
+        activeSnippetId = snippets.FirstOrDefault()?.Id;
+    }
+}
+```
+
+This handles the upgrade path gracefully, preserving user data instead of discarding it.
+
+### 3. UI Layout in Designer Code
+
+**PR #7 (Without WinForms Expert)**: Controls placed with absolute positioning and cramped spacing:
+
+```csharp
+var btnNewSnippet = new Button
+{
+    Text = "New",
+    Location = new Point(335, 82),
+    Size = new Size(35, 25),  // Cramped button
+    Font = new Font("Segoe UI", 8F)
+};
+```
+
+**PR #8 (With WinForms Expert)**: Better organized with logical grouping and proper sizing:
+
+```csharp
+// Snippet selector ComboBox - wider, more prominent
+var cmbSnippets = new ComboBox
+{
+    Name = "cmbSnippets",
+    Location = new Point(85, 82),
+    Size = new Size(300, 23),  // 300px width for readability
+    DropDownStyle = ComboBoxStyle.DropDownList,
+    Font = new Font("Segoe UI", 9F)
+};
+
+// Snippet management buttons - moved under dropdown for logical grouping
+var btnNewSnippet = new Button
+{
+    Name = "btnNewSnippet",
+    Text = "New",
+    Location = new Point(85, 110),
+    Size = new Size(70, 25),  // Proper button size
+    Font = new Font("Segoe UI", 9F)
+};
+```
+
+The WinForms Expert agent understood that:
+- ComboBoxes should be wide enough to display meaningful names
+- Related buttons should be grouped together visually
+- Font size 8F is too small for modern displays
+- Controls need descriptive names for maintainability
+
+### 4. Validation Logic with User Feedback
+
+**PR #7**: Basic validation without proper user feedback:
+
+```csharp
+if (string.IsNullOrWhiteSpace(name)) return;
+if (snippets.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+{
+    MessageBox.Show("A snippet with this name already exists.", 
+        "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    return;
+}
+```
+
+**PR #8**: Enhanced validation with trim and separate empty-string check:
+
+```csharp
+// Validate: trim and check uniqueness (case-insensitive)
+name = name.Trim();
+if (string.IsNullOrEmpty(name))
+{
+    MessageBox.Show("Snippet name cannot be empty.", 
+        "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    return;
+}
+
+if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
+{
+    MessageBox.Show("A snippet with this name already exists.", 
+        "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    return;
+}
+```
+
+The WinForms Expert understood the importance of:
+- Trimming user input (common WinForms pattern)
+- Providing specific error messages for different failure modes
+- Using `string.Equals` for clarity over extension method
+
+### 5. Modern C# Features in Business Logic
+
+**PR #8** consistently used modern C# patterns throughout:
+
+```csharp
+// File-scoped namespace
+namespace HotkeyTyper;
+
+// Target-typed new
+private List<TextSnippet> snippets = new();
+
+// Expression-bodied member
+public string InputText => txtInput.Text;
+
+// Nullable reference types
+public static string? Show(string prompt, string title, string defaultValue = "")
+
+// Using declaration (proper disposal)
+using var dialog = new InputDialog(prompt, title, defaultValue);
+```
+
+While PR #7 had some modern features, PR #8 applied them consistently and appropriately.
+
+### 6. Comprehensive Unit Tests
+
+**PR #8** included thorough migration tests that PR #7 lacked:
+
+```csharp
+[Fact]
+public void OldSettings_MigratesToSnippets()
+{
+    // Arrange - Old settings format with single PredefinedText
+    string oldSettingsJson = """
+    {
+        "PredefinedText": "Hello, World!",
+        "TypingSpeed": 7,
+        "HasCode": true
+    }
+    """;
+    
+    var oldSettings = JsonSerializer.Deserialize<AppSettings>(oldSettingsJson);
+    
+    // Act & Assert - Settings should be migrated
+    Assert.NotNull(oldSettings);
+    Assert.Null(oldSettings.Snippets);
+    Assert.Equal("Hello, World!", oldSettings.PredefinedText);
+}
+```
+
+These tests ensure the backward compatibility works correctly—a crucial detail for production applications.
+
 ### The Visible Difference
 
 The before-and-after images in the `blogs/winforms agent/` folder tell the story:

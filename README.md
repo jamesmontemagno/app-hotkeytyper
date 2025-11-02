@@ -9,8 +9,10 @@ Key features:
 - Persistent settings stored in `settings.json`
 - System tray integration for unobtrusive background operation
 	- Hotkey now remains active after minimizing to tray (handle recreation is auto-handled)
- - Custom in-memory tray & window icon (no external .ico file required)
-	- First run exports `HotkeyTyper.ico` beside the executable so you can replace it and set as `<ApplicationIcon>` if desired
+- Custom multi-resolution, theme-aware icon generated at runtime
+	- Automatically detects Windows light/dark theme and adjusts icon colors
+	- Supports multiple resolutions (16, 20, 24, 32, 48, 64px) for crisp display at all DPI scales
+	- First run exports multi-size `HotkeyTyper.ico` beside the executable; replace it with your own if desired
 
 Repository:
 
@@ -42,8 +44,8 @@ Notes
 
 - Some applications or elevated processes may block automated input; run Hotkey Typer with matching elevation if needed.
 - Because the app simulates keystrokes, security tools may flag it. Only run it in trusted environments.
- - The tray + taskbar icon is generated at runtime (see `IconFactory.cs`). To supply your own static icon, add an .ico file to the project and set `<ApplicationIcon>YourIcon.ico</ApplicationIcon>` in the csproj, then assign it to the tray `NotifyIcon` in `Form1`.
- - A copy of the generated icon is saved as `HotkeyTyper.ico` (only if the file does not already exist) for convenience.
+ - The tray + taskbar icon is generated at runtime with multiple resolutions and theme-aware colors (see `IconFactory.cs`). The icon automatically adapts to Windows light/dark theme. To supply your own static icon, add an .ico file to the project and set `<ApplicationIcon>YourIcon.ico</ApplicationIcon>` in the csproj, then assign it to the tray `NotifyIcon` in `Form1`.
+ - A copy of the generated multi-resolution icon is saved as `HotkeyTyper.ico` (only if the file does not already exist) for convenience.
 
 ## Typing source code & special characters
 

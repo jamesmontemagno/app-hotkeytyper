@@ -26,6 +26,10 @@ partial class Form1
         ToolStripMenuItem mnuHelp = new ToolStripMenuItem();
         ToolStripMenuItem mnuCheckForUpdates = new ToolStripMenuItem();
         ToolStripMenuItem mnuAbout = new ToolStripMenuItem();
+        ToolStripMenuItem mnuTheme = new ToolStripMenuItem();
+        mnuThemeSystem = new ToolStripMenuItem();
+        mnuThemeLight = new ToolStripMenuItem();
+        mnuThemeDark = new ToolStripMenuItem();
         TableLayoutPanel mainLayout = new TableLayoutPanel();
         Label lblInstructions = new Label();
         TableLayoutPanel snippetSection = new TableLayoutPanel();
@@ -78,11 +82,31 @@ partial class Form1
         mnuHelp.Text = "&Help";
         mnuHelp.DropDownItems.Add(mnuCheckForUpdates);
         mnuHelp.DropDownItems.Add(new ToolStripSeparator());
+        mnuHelp.DropDownItems.Add(mnuTheme);
+        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
         mnuHelp.DropDownItems.Add(mnuAbout);
 
         mnuCheckForUpdates.Name = "mnuCheckForUpdates";
         mnuCheckForUpdates.Text = "Check for &Updates...";
         mnuCheckForUpdates.Click += MnuCheckForUpdates_Click;
+
+        mnuTheme.Name = "mnuTheme";
+        mnuTheme.Text = "&Theme";
+        mnuTheme.DropDownItems.Add(mnuThemeSystem);
+        mnuTheme.DropDownItems.Add(mnuThemeLight);
+        mnuTheme.DropDownItems.Add(mnuThemeDark);
+
+        mnuThemeSystem.Name = "mnuThemeSystem";
+        mnuThemeSystem.Text = "&System";
+        mnuThemeSystem.Click += MnuThemeSystem_Click;
+
+        mnuThemeLight.Name = "mnuThemeLight";
+        mnuThemeLight.Text = "&Light";
+        mnuThemeLight.Click += MnuThemeLight_Click;
+
+        mnuThemeDark.Name = "mnuThemeDark";
+        mnuThemeDark.Text = "&Dark";
+        mnuThemeDark.Click += MnuThemeDark_Click;
 
         mnuAbout.Name = "mnuAbout";
         mnuAbout.Text = "&About...";
@@ -382,4 +406,7 @@ partial class Form1
     private CheckBox chkUseFile;
     private TextBox txtFilePath;
     private Button btnBrowseFile;
+    private ToolStripMenuItem mnuThemeSystem;
+    private ToolStripMenuItem mnuThemeLight;
+    private ToolStripMenuItem mnuThemeDark;
 }

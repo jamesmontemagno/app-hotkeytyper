@@ -93,6 +93,9 @@ public partial class Form1 : Form
         // Ensure UI reflects loaded settings
         UpdateUIFromSettings();
 
+        // Update theme menu checkmarks
+        UpdateThemeMenuCheckmarks();
+
         // Set initial status color and text
         if (lblStatus != null)
         {
@@ -119,6 +122,14 @@ public partial class Form1 : Form
                 });
             }
         });
+    }
+
+    private void UpdateThemeMenuCheckmarks()
+    {
+        var currentTheme = ThemeManager.CurrentTheme;
+        mnuThemeSystem.Checked = currentTheme == ThemeMode.System;
+        mnuThemeLight.Checked = currentTheme == ThemeMode.Light;
+        mnuThemeDark.Checked = currentTheme == ThemeMode.Dark;
     }
 
     /// <summary>
@@ -948,6 +959,39 @@ public partial class Form1 : Form
 
         // Use custom dialog that respects dark mode
         AboutDialog.Show(this, versionStr);
+    }
+
+    private void MnuThemeSystem_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.SetTheme(ThemeMode.System);
+        ShowThemeChangeMessage("System");
+    }
+
+    private void MnuThemeLight_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.SetTheme(ThemeMode.Light);
+        ShowThemeChangeMessage("Light");
+    }
+
+    private void MnuThemeDark_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.SetTheme(ThemeMode.Dark);
+        ShowThemeChangeMessage("Dark");
+    }
+
+    private void ShowThemeChangeMessage(string themeName)
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = $"Theme set to {themeName}. Restart app to apply changes.";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+        }
+
+        MessageBox.Show(
+            $"Theme changed to {themeName}.\n\nPlease restart the application for the changes to take effect.",
+            "Theme Changed",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 
     protected override void Dispose(bool disposing)

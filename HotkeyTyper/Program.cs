@@ -12,8 +12,9 @@ static class Program
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
         
-        // Enable dark theme support based on Windows system settings (.NET 9+)
-        Application.SetColorMode(SystemColorMode.System);
+        // Load theme preferences and apply theme
+        ThemeManager.LoadPreferences();
+        ThemeManager.ApplyTheme();
         
         Application.Run(new Form1());
     }    

@@ -954,8 +954,20 @@ public partial class Form1 : Form
 
     private void MnuAbout_Click(object? sender, EventArgs e)
     {
+        // Get version from assembly (set by build workflow)
         var version = typeof(Form1).Assembly.GetName().Version;
-        var versionStr = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0.0";
+        string versionStr;
+        
+        if (version != null && version.Major > 0)
+        {
+            // Use version from assembly (e.g., "0.0.123" from build)
+            versionStr = $"{version.Major}.{version.Minor}.{version.Build}";
+        }
+        else
+        {
+            // Development build fallback
+            versionStr = "dev";
+        }
 
         // Use custom dialog that respects dark mode
         AboutDialog.Show(this, versionStr);

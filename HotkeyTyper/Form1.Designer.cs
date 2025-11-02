@@ -237,11 +237,11 @@ partial class Form1
         // Status label
         var lblStatus = new Label
         {
+            Name = "lblStatus",
             Text = "Status: Hotkey CTRL+SHIFT+1 is active",
             Location = new Point(180, 420),
             Size = new Size(300, 20),
-            Font = new Font("Segoe UI", 9F),
-            ForeColor = Color.Green
+            Font = new Font("Segoe UI", 9F)
         };
         
         // Add controls to form

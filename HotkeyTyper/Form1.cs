@@ -45,6 +45,14 @@ public partial class Form1 : Form
     private const int ContextualPauseMs = 140; // Extra pause after space following certain boundary chars
     private static readonly char[] ContextBoundaryChars = new[] { '>', ')', '}', ']' };
     
+    // Status color types
+    private enum StatusType
+    {
+        Success,
+        Warning,
+        Error
+    }
+    
     // System tray components
     private NotifyIcon? trayIcon;
     private ContextMenuStrip? trayMenu;
@@ -82,7 +90,24 @@ public partial class Form1 : Form
     private void Form1_Load(object? sender, EventArgs e)
     {
         UpdateUIFromSettings();
+        
+        // Set initial status color
+        if (lblStatus != null)
+        {
+            lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+        }
     }
+    
+    /// <summary>
+    /// Returns appropriate color for status messages based on current dark mode setting.
+    /// </summary>
+    private Color GetStatusColor(StatusType status) => status switch
+    {
+        StatusType.Success => Application.IsDarkModeEnabled ? Color.LightGreen : Color.Green,
+        StatusType.Warning => Application.IsDarkModeEnabled ? Color.Orange : Color.DarkOrange,
+        StatusType.Error => Application.IsDarkModeEnabled ? Color.IndianRed : Color.Red,
+        _ => SystemColors.ControlText
+    };
     
     private void UpdateUIFromSettings()
     {
@@ -370,14 +395,14 @@ public partial class Form1 : Form
                 if (lblStatus != null)
                 {
                     lblStatus.Text = "Status: File not found";
-                    lblStatus.ForeColor = Color.Red;
+                    lblStatus.ForeColor = GetStatusColor(StatusType.Error);
                 }
                 return;
             }
             if (truncated && lblStatus != null)
             {
                 lblStatus.Text = "Status: File truncated for typing";
-                lblStatus.ForeColor = Color.DarkOrange;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
             }
         }
         else
@@ -390,7 +415,7 @@ public partial class Form1 : Form
         if (lblStatus != null)
         {
             lblStatus.Text = "Status: Typing in progress...";
-            lblStatus.ForeColor = Color.DarkOrange;
+            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
         }
         if (btnStop != null)
         {
@@ -487,7 +512,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
-                lblStatus.ForeColor = Color.Green;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
     }
@@ -527,7 +552,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: File mode active (text box not saved)";
-                lblStatus.ForeColor = Color.DarkOrange;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
             }
             return;
         }
@@ -539,7 +564,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: Snippet saved";
-                lblStatus.ForeColor = Color.Green;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
     }
@@ -657,7 +682,7 @@ public partial class Form1 : Form
         if (lblStatus != null)
         {
             lblStatus.Text = "Status: Speed limited in code mode";
-            lblStatus.ForeColor = Color.DarkOrange;
+            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
         }
     }
 
@@ -704,7 +729,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: Typing cancelled";
-                lblStatus.ForeColor = Color.Red;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Error);
             }
             if (btnStop != null)
             {
@@ -752,7 +777,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: New snippet created";
-                lblStatus.ForeColor = Color.Green;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
     }
@@ -774,7 +799,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: Snippet copied";
-                lblStatus.ForeColor = Color.Green;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
     }
@@ -796,7 +821,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: Snippet renamed";
-                lblStatus.ForeColor = Color.Green;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
     }
@@ -808,7 +833,7 @@ public partial class Form1 : Form
         if (lblStatus != null)
         {
             lblStatus.Text = "Status: Snippet deleted";
-            lblStatus.ForeColor = Color.Green;
+            lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
     }
     
@@ -983,7 +1008,7 @@ public partial class Form1 : Form
             if (lblStatus != null)
             {
                 lblStatus.Text = "Status: Failed to register global hotkey";
-                lblStatus.ForeColor = Color.Red;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Error);
             }
             trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", "Failed to register global hotkey CTRL+SHIFT+1. It may be in use by another application.", ToolTipIcon.Error);
         }
@@ -992,7 +1017,7 @@ public partial class Form1 : Form
             if (lblStatus != null && lblStatus.Text.StartsWith("Status: Failed", StringComparison.OrdinalIgnoreCase))
             {
                 lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
-                lblStatus.ForeColor = Color.Green;
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
     }

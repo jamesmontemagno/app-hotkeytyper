@@ -51,6 +51,12 @@ partial class Form1
         TableLayoutPanel fileSection = new TableLayoutPanel();
         txtFilePath = new TextBox();
         btnBrowseFile = new Button();
+        TableLayoutPanel hotkeySection = new TableLayoutPanel();
+        Label lblHotkey = new Label();
+        txtHotkey = new TextBox();
+        FlowLayoutPanel hotkeyButtonFlow = new FlowLayoutPanel();
+        Button btnClearHotkey = new Button();
+        Button btnRestoreDefaultHotkey = new Button();
         Panel spacer = new Panel();
         FlowLayoutPanel actionSection = new FlowLayoutPanel();
         Button btnUpdate = new Button();
@@ -69,6 +75,8 @@ partial class Form1
         speedSection.SuspendLayout();
         optionsSection.SuspendLayout();
         fileSection.SuspendLayout();
+        hotkeySection.SuspendLayout();
+        hotkeyButtonFlow.SuspendLayout();
         actionSection.SuspendLayout();
         SuspendLayout();
 
@@ -121,10 +129,11 @@ partial class Form1
         mainLayout.Location = new Point(0, 24);
         mainLayout.Name = "mainLayout";
         mainLayout.Padding = new Padding(10);
-        mainLayout.RowCount = 8;
+        mainLayout.RowCount = 9;
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -138,7 +147,7 @@ partial class Form1
         lblInstructions.Anchor = AnchorStyles.Left | AnchorStyles.Top;
         lblInstructions.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
         lblInstructions.Margin = new Padding(3);
-        lblInstructions.Text = "Select or manage snippets below.\nPress CTRL+SHIFT+1 anywhere to type active snippet:";
+        lblInstructions.Text = "Select or manage snippets below.\nPress your configured hotkey anywhere to type active snippet:";
         mainLayout.Controls.Add(lblInstructions, 0, 0);
 
         // Row 1: Snippet section
@@ -314,12 +323,62 @@ partial class Form1
 
         mainLayout.Controls.Add(fileSection, 0, 5);
 
-        // Row 6: Spacer
+        // Row 6: Hotkey section
+        hotkeySection.AutoSize = true;
+        hotkeySection.ColumnCount = 2;
+        hotkeySection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        hotkeySection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        hotkeySection.Dock = DockStyle.Fill;
+        hotkeySection.Margin = new Padding(3);
+        hotkeySection.RowCount = 2;
+        hotkeySection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        hotkeySection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        lblHotkey.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        lblHotkey.Font = new Font("Segoe UI", 9F);
+        lblHotkey.Margin = new Padding(3);
+        lblHotkey.Text = "Hotkey:";
+        hotkeySection.Controls.Add(lblHotkey, 0, 0);
+
+        txtHotkey.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        txtHotkey.Font = new Font("Segoe UI", 9F);
+        txtHotkey.Margin = new Padding(3);
+        txtHotkey.Name = "txtHotkey";
+        txtHotkey.ReadOnly = true;
+        txtHotkey.KeyDown += TxtHotkey_KeyDown;
+        hotkeySection.Controls.Add(txtHotkey, 1, 0);
+
+        hotkeyButtonFlow.AutoSize = true;
+        hotkeyButtonFlow.Dock = DockStyle.Fill;
+        hotkeyButtonFlow.FlowDirection = FlowDirection.LeftToRight;
+        hotkeyButtonFlow.Margin = new Padding(3, 0, 3, 3);
+        hotkeyButtonFlow.WrapContents = true;
+
+        btnClearHotkey.AutoSize = true;
+        btnClearHotkey.Font = new Font("Segoe UI", 9F);
+        btnClearHotkey.Margin = new Padding(0, 0, 3, 0);
+        btnClearHotkey.Name = "btnClearHotkey";
+        btnClearHotkey.Text = "Clear";
+        btnClearHotkey.Click += BtnClearHotkey_Click;
+        hotkeyButtonFlow.Controls.Add(btnClearHotkey);
+
+        btnRestoreDefaultHotkey.AutoSize = true;
+        btnRestoreDefaultHotkey.Font = new Font("Segoe UI", 9F);
+        btnRestoreDefaultHotkey.Margin = new Padding(0);
+        btnRestoreDefaultHotkey.Name = "btnRestoreDefaultHotkey";
+        btnRestoreDefaultHotkey.Text = "Restore Default";
+        btnRestoreDefaultHotkey.Click += BtnRestoreDefaultHotkey_Click;
+        hotkeyButtonFlow.Controls.Add(btnRestoreDefaultHotkey);
+
+        hotkeySection.Controls.Add(hotkeyButtonFlow, 1, 1);
+        mainLayout.Controls.Add(hotkeySection, 0, 6);
+
+        // Row 7: Spacer
         spacer.Dock = DockStyle.Fill;
         spacer.Margin = new Padding(0);
-        mainLayout.Controls.Add(spacer, 0, 6);
+        mainLayout.Controls.Add(spacer, 0, 7);
 
-        // Row 7: Action section
+        // Row 8: Action section
         actionSection.AutoSize = true;
         actionSection.Dock = DockStyle.Fill;
         actionSection.FlowDirection = FlowDirection.LeftToRight;
@@ -357,7 +416,7 @@ partial class Form1
         lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
         actionSection.Controls.Add(lblStatus);
 
-        mainLayout.Controls.Add(actionSection, 0, 7);
+        mainLayout.Controls.Add(actionSection, 0, 8);
 
         // 5. Configure Form LAST
         AutoScaleMode = AutoScaleMode.Font;
@@ -370,7 +429,7 @@ partial class Form1
         MinimumSize = new Size(520, 640);
         Name = "Form1";
         StartPosition = FormStartPosition.CenterScreen;
-        Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
+        Text = "Hotkey Typer - Configurable Global Hotkey";
 
         // 6. Resume layout
         menuStrip.ResumeLayout(false);
@@ -387,6 +446,10 @@ partial class Form1
         optionsSection.PerformLayout();
         fileSection.ResumeLayout(false);
         fileSection.PerformLayout();
+        hotkeySection.ResumeLayout(false);
+        hotkeySection.PerformLayout();
+        hotkeyButtonFlow.ResumeLayout(false);
+        hotkeyButtonFlow.PerformLayout();
         actionSection.ResumeLayout(false);
         actionSection.PerformLayout();
         ResumeLayout(false);
@@ -406,6 +469,7 @@ partial class Form1
     private CheckBox chkUseFile;
     private TextBox txtFilePath;
     private Button btnBrowseFile;
+    private TextBox txtHotkey;
     private ToolStripMenuItem mnuThemeSystem;
     private ToolStripMenuItem mnuThemeLight;
     private ToolStripMenuItem mnuThemeDark;

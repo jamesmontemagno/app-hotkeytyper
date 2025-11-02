@@ -4,7 +4,7 @@ A tiny Windows Forms utility that types a predefined block of text into the curr
 
 Key features:
 
-- Global hotkey (default: CTRL+SHIFT+1)
+- **Configurable global hotkey** (default: CTRL+SHIFT+1) - customize to your preference
 - Human-like typing with randomized delays
 - Persistent settings stored in `settings.json`
 - System tray integration for unobtrusive background operation
@@ -35,10 +35,25 @@ dotnet run
 Usage
 
 1. Start the app (see above).
-2. Enter your desired text in the main window and click "Update Text" to save.
-3. Switch to any application and press CTRL+SHIFT+1 to have Hotkey Typer type the configured snippet.
-4. Minimize to tray to keep the app running in the background.
+2. Enter your desired text in the main window and click "Save" to save.
+3. (Optional) Customize the global hotkey by clicking in the "Hotkey" field and pressing your desired key combination (e.g., CTRL+ALT+T).
+4. Switch to any application and press your configured hotkey to have Hotkey Typer type the configured snippet.
+5. Minimize to tray to keep the app running in the background.
 	- The global hotkey remains active even after minimizing or toggling taskbar visibility.
+
+## Configuring the Hotkey
+
+The hotkey section allows you to customize the global shortcut:
+
+- **Change hotkey**: Click in the Hotkey field and press your desired combination (e.g., Ctrl+Alt+F5)
+- **Requirements**: 
+  - Must include at least one modifier key (Ctrl, Shift, Alt, or Win)
+  - Must include a primary key (letter, number, or function key)
+- **Clear**: Clears the current hotkey (you'll need to set a new one to use the app)
+- **Restore Default**: Reverts to Ctrl+Shift+1
+- **Conflict handling**: If your chosen hotkey is already in use by another application, the app will notify you and revert to the previous working hotkey
+
+The hotkey configuration is saved in `settings.json` and persists across restarts.
 
 Notes
 

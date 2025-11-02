@@ -126,9 +126,9 @@ public partial class Form1 : Form
     /// </summary>
     private Color GetStatusColor(StatusType status) => status switch
     {
-        StatusType.Success => Application.IsDarkModeEnabled ? Color.LightGreen : Color.Green,
-        StatusType.Warning => Application.IsDarkModeEnabled ? Color.Orange : Color.DarkOrange,
-        StatusType.Error => Application.IsDarkModeEnabled ? Color.IndianRed : Color.Red,
+        StatusType.Success => AppColors.Success,
+      StatusType.Warning => AppColors.Warning,
+        StatusType.Error => AppColors.Error,
         _ => SystemColors.ControlText
     };
 
@@ -881,32 +881,33 @@ public partial class Form1 : Form
                 lblStatus.Text = "You're running the latest version!";
                 lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
-            MessageBox.Show($"You're running the latest version of Hotkey Typer.",
-                "No Updates", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
+   
+            // Show simple message for "no updates" - MessageBox is fine here
+            MessageBox.Show(this, 
+    "You're running the latest version of Hotkey Typer.",
+          "No Updates", 
+ MessageBoxButtons.OK, 
+      MessageBoxIcon.Information);
+   return;
+   }
 
         var changelog = UpdateManager.GetChangelog(3);
-        var result = MessageBox.Show(
-            $"A new version ({UpdateManager.LatestVersion}) is available!\n\n" +
-            $"Would you like to download and install it?\n\n" +
-            $"Recent Changes:\n{changelog}",
-            "Update Available",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Information);
+ 
+    // Use custom dialog that respects dark mode
+    bool shouldUpdate = UpdateDialog.Show(this, UpdateManager.LatestVersion ?? "unknown", changelog);
 
-        if (result == DialogResult.Yes)
+        if (shouldUpdate)
         {
             await PerformUpdateAsync();
         }
-        else
-        {
-            if (lblStatus != null)
-            {
-                lblStatus.Text = "Ready";
-                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+ else
+ {
+       if (lblStatus != null)
+         {
+  lblStatus.Text = "Ready";
+         lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
-        }
+     }
     }
 
     private async Task PerformUpdateAsync()
@@ -944,15 +945,9 @@ public partial class Form1 : Form
     {
         var version = typeof(Form1).Assembly.GetName().Version;
         var versionStr = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0.0";
-        
-        MessageBox.Show(
-            $"Hotkey Typer\n\n" +
-            $"Version {versionStr}\n\n" +
-            $"A simple utility to type predefined text snippets using a global hotkey (CTRL+SHIFT+1).\n\n" +
-            $"© {DateTime.Now.Year} James Montemagno",
-            "About Hotkey Typer",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Information);
+
+        // Use custom dialog that respects dark mode
+        AboutDialog.Show(this, versionStr);
     }
 
     protected override void Dispose(bool disposing)

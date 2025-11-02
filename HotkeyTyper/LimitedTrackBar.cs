@@ -26,7 +26,7 @@ internal class LimitedTrackBar : TrackBar
         int right = rect.Width - 8;
         int trackY = rect.Height / 2;
 
-        using (var trackPen = new Pen(Color.Gray, 3))
+        using (var trackPen = new Pen(AppColors.TrackBarTrack, 3))
         {
             e.Graphics.DrawLine(trackPen, left, trackY, right, trackY);
         }
@@ -38,7 +38,7 @@ internal class LimitedTrackBar : TrackBar
             float ratio = range == 0 ? 0 : (float)(v - Minimum) / range;
             int x = left + (int)((right - left) * ratio);
             bool disabled = SoftMax.HasValue && v > SoftMax.Value;
-            using var tickPen = new Pen(disabled ? Color.LightGray : Color.Black, 1);
+            using var tickPen = new Pen(disabled ? AppColors.TrackBarTickDisabled : AppColors.TrackBarTick, 1);
             e.Graphics.DrawLine(tickPen, x, trackY - 6, x, trackY + 6);
         }
 
@@ -46,9 +46,9 @@ internal class LimitedTrackBar : TrackBar
         float thumbRatio = range == 0 ? 0 : (float)(Value - Minimum) / range;
         int thumbX = left + (int)((right - left) * thumbRatio);
         var thumbRect = new Rectangle(thumbX - 7, trackY - 11, 14, 22);
-        using (var thumbBrush = new SolidBrush(Color.DodgerBlue))
+        using (var thumbBrush = new SolidBrush(AppColors.TrackBarThumb))
             e.Graphics.FillEllipse(thumbBrush, thumbRect);
-        using (var outlinePen = new Pen(Color.Black, 1))
+        using (var outlinePen = new Pen(AppColors.TrackBarThumbOutline, 1))
             e.Graphics.DrawEllipse(outlinePen, thumbRect);
     }
 

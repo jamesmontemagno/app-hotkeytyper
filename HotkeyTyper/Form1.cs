@@ -740,23 +740,42 @@ public partial class Form1 : Form
     
     private void BtnNewSnippet_Click(object? sender, EventArgs e)
     {
-        CreateNewSnippet();
-        UpdateUIFromSettings();
-        if (lblStatus != null)
+        string? newName = InputDialog.Show(
+            "Enter name for new snippet:",
+            "New Snippet",
+            $"Snippet {nextSnippetNumber}");
+        
+        if (!string.IsNullOrWhiteSpace(newName))
         {
-            lblStatus.Text = "Status: New snippet created";
-            lblStatus.ForeColor = Color.Green;
+            CreateNewSnippet(newName);
+            UpdateUIFromSettings();
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: New snippet created";
+                lblStatus.ForeColor = Color.Green;
+            }
         }
     }
     
     private void BtnDuplicateSnippet_Click(object? sender, EventArgs e)
     {
-        DuplicateActiveSnippet();
-        UpdateUIFromSettings();
-        if (lblStatus != null)
+        var current = GetActiveSnippet();
+        if (current == null) return;
+        
+        string? newName = InputDialog.Show(
+            "Enter name for copied snippet:",
+            "Copy Snippet",
+            $"{current.Name} (Copy)");
+        
+        if (!string.IsNullOrWhiteSpace(newName))
         {
-            lblStatus.Text = "Status: Snippet duplicated";
-            lblStatus.ForeColor = Color.Green;
+            DuplicateActiveSnippet(newName);
+            UpdateUIFromSettings();
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: Snippet copied";
+                lblStatus.ForeColor = Color.Green;
+            }
         }
     }
     
@@ -834,31 +853,60 @@ public partial class Form1 : Form
         }
     }
     
-    private void CreateNewSnippet()
+    private void CreateNewSnippet(string name)
     {
+        // Validate: trim and check uniqueness (case-insensitive)
+        name = name.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
         string newId = Guid.NewGuid().ToString();
         var newSnippet = new TextSnippet
         {
             Id = newId,
-            Name = $"Snippet {nextSnippetNumber++}",
+            Name = name,
             Content = string.Empty,
             LastUsed = DateTime.Now
         };
         snippets.Add(newSnippet);
         activeSnippetId = newId;
+        nextSnippetNumber++; // Increment for next default name
         SaveSettings();
     }
     
-    private void DuplicateActiveSnippet()
+    private void DuplicateActiveSnippet(string name)
     {
         var current = GetActiveSnippet();
         if (current == null) return;
+        
+        // Validate: trim and check uniqueness (case-insensitive)
+        name = name.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        
+        if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
         
         string newId = Guid.NewGuid().ToString();
         var duplicate = new TextSnippet
         {
             Id = newId,
-            Name = $"{current.Name} (Copy)",
+            Name = name,
             Content = current.Content,
             LastUsed = DateTime.Now
         };

@@ -25,11 +25,12 @@ partial class Form1
         
         // Form properties
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(500, 600);
+        ClientSize = new Size(520, 640);
         Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
         StartPosition = FormStartPosition.CenterScreen;
-        MaximizeBox = false;
-        FormBorderStyle = FormBorderStyle.FixedSingle;
+        MaximizeBox = true;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MinimumSize = new Size(520, 640);
         
         // Create controls
         CreateControls();
@@ -37,104 +38,171 @@ partial class Form1
     
     private void CreateControls()
     {
-        // Label for instructions
+        // Create main TableLayoutPanel
+        var mainLayout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 8,
+            Padding = new Padding(10)
+        };
+        
+        // Configure column (single column at 100%)
+        mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        
+        // Configure rows
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 0: Instructions
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 1: Snippet management
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F)); // Row 2: Text content (40%)
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 3: Typing speed
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 4: Options checkboxes
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 5: File path
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F)); // Row 6: Spacer (fill remaining)
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 7: Action buttons
+        
+        // Row 0: Instructions Label
         var lblInstructions = new Label
         {
             Text = "Select or manage snippets below.\nPress CTRL+SHIFT+1 anywhere to type active snippet:",
-            Location = new Point(20, 20),
-            // Increased height to ensure second line isn't clipped on various DPI scales
-            Size = new Size(460, 55),
+            AutoSize = true,
+            Anchor = AnchorStyles.Left | AnchorStyles.Top,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 10F, FontStyle.Regular)
         };
+        mainLayout.Controls.Add(lblInstructions, 0, 0);
         
-        // Snippet selector label
+        // Row 1: Snippet Management Section (nested TLP)
+        var snippetSection = new TableLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 2,
+            Margin = new Padding(3)
+        };
+        snippetSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Label column
+        snippetSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // Content column
+        snippetSection.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // ComboBox row
+        snippetSection.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Buttons row
+        
         var lblSnippet = new Label
         {
             Text = "Snippet:",
-            Location = new Point(20, 85),
-            Size = new Size(60, 20),
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 9F)
         };
+        snippetSection.Controls.Add(lblSnippet, 0, 0);
         
-        // Snippet selector ComboBox
         var cmbSnippets = new ComboBox
         {
             Name = "cmbSnippets",
-            Location = new Point(85, 82),
-            Size = new Size(300, 23),
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(3),
             DropDownStyle = ComboBoxStyle.DropDownList,
             Font = new Font("Segoe UI", 9F)
         };
         cmbSnippets.SelectedIndexChanged += CmbSnippets_SelectedIndexChanged;
+        snippetSection.Controls.Add(cmbSnippets, 1, 0);
         
-        // Snippet management buttons - moved under dropdown
+        // Buttons in a FlowLayoutPanel for better wrapping
+        var buttonFlow = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(3, 0, 3, 3),
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true
+        };
+        
         var btnNewSnippet = new Button
         {
             Name = "btnNewSnippet",
             Text = "New",
-            Location = new Point(85, 110),
-            Size = new Size(70, 25),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 3, 0),
             Font = new Font("Segoe UI", 9F)
         };
         btnNewSnippet.Click += BtnNewSnippet_Click;
+        buttonFlow.Controls.Add(btnNewSnippet);
         
         var btnDuplicateSnippet = new Button
         {
             Name = "btnDuplicateSnippet",
             Text = "Copy",
-            Location = new Point(160, 110),
-            Size = new Size(70, 25),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 3, 0),
             Font = new Font("Segoe UI", 9F)
         };
         btnDuplicateSnippet.Click += BtnDuplicateSnippet_Click;
+        buttonFlow.Controls.Add(btnDuplicateSnippet);
         
         var btnRenameSnippet = new Button
         {
             Name = "btnRenameSnippet",
             Text = "Rename",
-            Location = new Point(235, 110),
-            Size = new Size(70, 25),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 3, 0),
             Font = new Font("Segoe UI", 9F)
         };
         btnRenameSnippet.Click += BtnRenameSnippet_Click;
+        buttonFlow.Controls.Add(btnRenameSnippet);
         
         var btnDeleteSnippet = new Button
         {
             Name = "btnDeleteSnippet",
             Text = "Delete",
-            Location = new Point(310, 110),
-            Size = new Size(75, 25),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 0),
             Font = new Font("Segoe UI", 9F)
         };
         btnDeleteSnippet.Click += BtnDeleteSnippet_Click;
+        buttonFlow.Controls.Add(btnDeleteSnippet);
         
-        // TextBox for predefined text
+        snippetSection.Controls.Add(buttonFlow, 1, 1);
+        mainLayout.Controls.Add(snippetSection, 0, 1);
+        
+        // Row 2: Text Content Area (MultiLine TextBox)
         var txtPredefinedText = new TextBox
         {
             Name = "txtPredefinedText",
-            Text = string.Empty, // Content will be loaded from active snippet
-            Location = new Point(20, 145),
-            Size = new Size(460, 135),
+            Text = string.Empty,
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 9F)
         };
+        mainLayout.Controls.Add(txtPredefinedText, 0, 2);
         
-        // Typing speed label
+        // Row 3: Typing Speed Section (nested TLP)
+        var speedSection = new TableLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            ColumnCount = 3,
+            RowCount = 1,
+            Margin = new Padding(3)
+        };
+        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Label
+        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // Slider
+        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Speed indicator
+        speedSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        
         var lblTypingSpeed = new Label
         {
             Text = "Typing Speed:",
-            Location = new Point(20, 290),
-            Size = new Size(80, 20),
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 9F)
         };
+        speedSection.Controls.Add(lblTypingSpeed, 0, 0);
         
-        // Typing speed slider (custom for soft limit visuals)
         var sliderTypingSpeed = new LimitedTrackBar
         {
             Name = "sliderTypingSpeed",
-            Location = new Point(105, 285),
-            Size = new Size(200, 45),
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(3),
             Minimum = 1,
             Maximum = 10,
             Value = typingSpeed,
@@ -143,129 +211,166 @@ partial class Form1
             SoftMax = hasCodeMode ? 8 : null
         };
         sliderTypingSpeed.ValueChanged += TypingSpeedSlider_ValueChanged;
+        speedSection.Controls.Add(sliderTypingSpeed, 1, 0);
         
-        // Speed indicator label
         var lblSpeedIndicator = new Label
         {
             Name = "lblSpeedIndicator",
-            Text = "Normal", // Default value, will be updated after load
-            Location = new Point(315, 290),
-            Size = new Size(100, 20),
+            Text = "Normal",
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 9F, FontStyle.Italic)
         };
-
-        // Checkbox: Has Code (limits speed)
+        speedSection.Controls.Add(lblSpeedIndicator, 2, 0);
+        
+        mainLayout.Controls.Add(speedSection, 0, 3);
+        
+        // Row 4: Options Checkboxes (nested TLP)
+        var optionsSection = new TableLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = new Padding(3)
+        };
+        optionsSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        optionsSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        optionsSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        
         var chkHasCode = new CheckBox
         {
             Name = "chkHasCode",
             Text = "Has Code (limit speed)",
-            Location = new Point(20, 350),
-            Size = new Size(180, 20),
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(3),
             Checked = hasCodeMode,
             Font = new Font("Segoe UI", 9F)
         };
         chkHasCode.CheckedChanged += ChkHasCode_CheckedChanged;
-
-        // Use file checkbox
+        optionsSection.Controls.Add(chkHasCode, 0, 0);
+        
         var chkUseFile = new CheckBox
         {
             Name = "chkUseFile",
             Text = "Use File (.md/.txt)",
-            Location = new Point(220, 350),
-            Size = new Size(150, 20),
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(3),
             Checked = false,
             Font = new Font("Segoe UI", 9F)
         };
         chkUseFile.CheckedChanged += ChkUseFile_CheckedChanged;
-
-        // File path textbox
+        optionsSection.Controls.Add(chkUseFile, 1, 0);
+        
+        mainLayout.Controls.Add(optionsSection, 0, 4);
+        
+        // Row 5: File Path Section (nested TLP)
+        var fileSection = new TableLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = new Padding(3)
+        };
+        fileSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // TextBox
+        fileSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Button
+        fileSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        
         var txtFilePath = new TextBox
         {
             Name = "txtFilePath",
-            Location = new Point(20, 380),
-            Size = new Size(370, 23),
             Text = string.Empty,
             Enabled = false,
             ReadOnly = true,
+            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 9F)
         };
-
-        // Browse button
+        fileSection.Controls.Add(txtFilePath, 0, 0);
+        
         var btnBrowseFile = new Button
         {
             Name = "btnBrowseFile",
             Text = "Browse…",
-            Location = new Point(400, 378),
-            Size = new Size(80, 26),
+            AutoSize = true,
             Enabled = false,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(3),
             Font = new Font("Segoe UI", 9F)
         };
         btnBrowseFile.Click += BtnBrowseFile_Click;
+        fileSection.Controls.Add(btnBrowseFile, 1, 0);
         
-        // Button to save/update text
+        mainLayout.Controls.Add(fileSection, 0, 5);
+        
+        // Row 6: Spacer (empty panel to fill remaining space)
+        var spacer = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0)
+        };
+        mainLayout.Controls.Add(spacer, 0, 6);
+        
+        // Row 7: Action Buttons (FlowLayoutPanel with buttons and status)
+        var actionSection = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true,
+            Margin = new Padding(3)
+        };
+        
         var btnUpdate = new Button
         {
             Text = "Save",
-            Location = new Point(20, 415),
-            Size = new Size(100, 30),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 5, 0),
             Font = new Font("Segoe UI", 9F)
         };
         btnUpdate.Click += BtnUpdate_Click;
+        actionSection.Controls.Add(btnUpdate);
         
-        // Minimize to tray button
         var btnMinimize = new Button
         {
             Text = "Minimize to Tray",
-            Location = new Point(20, 455),
-            Size = new Size(150, 30),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 5, 0),
             Font = new Font("Segoe UI", 9F)
         };
         btnMinimize.Click += BtnMinimize_Click;
-
-        // Stop typing button
+        actionSection.Controls.Add(btnMinimize);
+        
         var btnStop = new Button
         {
             Name = "btnStop",
             Text = "Stop Typing",
-            Location = new Point(20, 495),
-            Size = new Size(150, 30),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 10, 0),
             Font = new Font("Segoe UI", 9F),
-            Enabled = false // Enabled only while typing is in progress
+            Enabled = false
         };
         btnStop.Click += BtnStop_Click;
+        actionSection.Controls.Add(btnStop);
         
-        // Status label
         var lblStatus = new Label
         {
+            Name = "lblStatus",
             Text = "Status: Hotkey CTRL+SHIFT+1 is active",
-            Location = new Point(180, 420),
-            Size = new Size(300, 20),
-            Font = new Font("Segoe UI", 9F),
-            ForeColor = Color.Green
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0),
+            Font = new Font("Segoe UI", 9F)
         };
+        actionSection.Controls.Add(lblStatus);
         
-        // Add controls to form
-        Controls.AddRange(new Control[] { 
-            lblInstructions,
-            lblSnippet,
-            cmbSnippets,
-            btnNewSnippet,
-            btnDuplicateSnippet,
-            btnRenameSnippet,
-            btnDeleteSnippet,
-            txtPredefinedText, 
-            lblTypingSpeed,
-            sliderTypingSpeed,
-            lblSpeedIndicator,
-            chkHasCode,
-            chkUseFile,
-            txtFilePath,
-            btnBrowseFile,
-            btnUpdate,
-            btnMinimize,
-            btnStop,
-            lblStatus
-        });
+        mainLayout.Controls.Add(actionSection, 0, 7);
+        
+        // Add main layout to form
+        Controls.Add(mainLayout);
         
         // Store references for later use
         this.cmbSnippets = cmbSnippets;

@@ -43,7 +43,8 @@ partial class Form1
     {
         var menuStrip = new MenuStrip
         {
-            Name = "menuStrip"
+            Name = "menuStrip",
+            Dock = DockStyle.Top
         };
         
         var mnuHelp = new ToolStripMenuItem
@@ -59,7 +60,16 @@ partial class Form1
         };
         mnuCheckForUpdates.Click += MnuCheckForUpdates_Click;
         
+        var mnuAbout = new ToolStripMenuItem
+        {
+            Name = "mnuAbout",
+            Text = "&About..."
+        };
+        mnuAbout.Click += MnuAbout_Click;
+        
         mnuHelp.DropDownItems.Add(mnuCheckForUpdates);
+        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
+        mnuHelp.DropDownItems.Add(mnuAbout);
         menuStrip.Items.Add(mnuHelp);
         
         Controls.Add(menuStrip);
@@ -83,11 +93,11 @@ partial class Form1
         // Configure rows
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 0: Instructions
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 1: Snippet management
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F)); // Row 2: Text content (40%)
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F)); // Row 2: Text content (70%)
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 3: Typing speed
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 4: Options checkboxes
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 5: File path
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F)); // Row 6: Spacer (fill remaining)
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F)); // Row 6: Spacer (fill remaining)
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 7: Action buttons
         
         // Row 0: Instructions Label

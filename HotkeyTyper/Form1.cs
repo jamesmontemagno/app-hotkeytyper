@@ -940,6 +940,21 @@ public partial class Form1 : Form
         // If successful, app will restart automatically
     }
 
+    private void MnuAbout_Click(object? sender, EventArgs e)
+    {
+        var version = typeof(Form1).Assembly.GetName().Version;
+        var versionStr = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0.0";
+        
+        MessageBox.Show(
+            $"Hotkey Typer\n\n" +
+            $"Version {versionStr}\n\n" +
+            $"A simple utility to type predefined text snippets using a global hotkey (CTRL+SHIFT+1).\n\n" +
+            $"© 2024 James Montemagno",
+            "About Hotkey Typer",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+
     protected override void Dispose(bool disposing)
     {
         // Unregister hotkey when form is disposed

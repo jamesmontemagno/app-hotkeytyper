@@ -1326,6 +1326,10 @@ public partial class Form1 : Form
         if (e.Control) mods |= MOD_CONTROL;
         if (e.Shift) mods |= MOD_SHIFT;
         if (e.Alt) mods |= MOD_ALT;
+        
+        // Note: Windows key combinations are typically not capturable via KeyDown in WinForms
+        // because the OS handles them at a lower level. We support Win key in parsing for
+        // users who manually edit settings.json, but cannot capture it via UI.
 
         Keys key = e.KeyCode;
 
@@ -1343,6 +1347,10 @@ public partial class Form1 : Form
 
     private void BtnClearHotkey_Click(object? sender, EventArgs e)
     {
+        // Note: Clearing doesn't unregister the hotkey - it remains active.
+        // This is intentional to avoid accidentally disabling the app's core functionality.
+        // Users can press a new combination or use Restore Default to change it.
+        
         if (txtHotkey != null)
         {
             txtHotkey.Text = string.Empty;
@@ -1350,7 +1358,7 @@ public partial class Form1 : Form
 
         if (lblStatus != null)
         {
-            lblStatus.Text = "Status: Press a key combination in the Hotkey field";
+            lblStatus.Text = "Status: Press a key combination in the Hotkey field to set a new hotkey";
             lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
         }
     }

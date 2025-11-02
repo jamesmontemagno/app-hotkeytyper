@@ -240,8 +240,8 @@ partial class Form1
         var lblStatus = new Label
         {
             Text = "Status: Hotkey CTRL+SHIFT+1 is active",
-            Location = new Point(150, 400),
-            Size = new Size(320, 20),
+            Location = new Point(250, 390),
+            Size = new Size(230, 20),
             Font = new Font("Segoe UI", 9F),
             ForeColor = Color.Green
         };

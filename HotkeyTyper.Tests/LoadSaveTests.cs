@@ -19,6 +19,7 @@ public class LoadSaveTests
             LastNonCodeSpeed = 9,
             UseFileSource = false,
             FileSourcePath = "",
+            Hotkey = "Ctrl+Alt+F5",
             Snippets = new List<TextSnippet>
             {
                 new TextSnippet
@@ -57,6 +58,7 @@ public class LoadSaveTests
             Assert.Equal(originalSettings.UseFileSource, loadedSettings.UseFileSource);
             Assert.Equal(originalSettings.FileSourcePath, loadedSettings.FileSourcePath);
             Assert.Equal(originalSettings.ActiveSnippetId, loadedSettings.ActiveSnippetId);
+            Assert.Equal(originalSettings.Hotkey, loadedSettings.Hotkey);
 
             Assert.NotNull(loadedSettings.Snippets);
             Assert.Equal(2, loadedSettings.Snippets.Count);
@@ -86,6 +88,7 @@ public class LoadSaveTests
   ""LastNonCodeSpeed"": 10,
   ""UseFileSource"": false,
   ""FileSourcePath"": """",
+  ""Hotkey"": ""Ctrl+Shift+1"",
   ""Snippets"": [
     {
       ""Id"": ""default"",
@@ -108,6 +111,7 @@ public class LoadSaveTests
         Assert.Equal("Default", settings.Snippets[0].Name);
      Assert.Equal("", settings.Snippets[0].Content); // Empty content is valid!
       Assert.Equal("default", settings.ActiveSnippetId);
+        Assert.Equal("Ctrl+Shift+1", settings.Hotkey);
     }
     
     [Fact]
@@ -121,6 +125,7 @@ public class LoadSaveTests
   ""LastNonCodeSpeed"": 10,
   ""UseFileSource"": false,
   ""FileSourcePath"": """",
+  ""Hotkey"": ""Alt+Shift+Z"",
   ""Snippets"": [
     {
       ""Id"": ""snippet1"",
@@ -143,5 +148,6 @@ public class LoadSaveTests
         Assert.Equal("My Snippet", settings.Snippets[0].Name);
         Assert.Equal("Hello World!", settings.Snippets[0].Content);
       Assert.Equal("snippet1", settings.ActiveSnippetId);
+        Assert.Equal("Alt+Shift+Z", settings.Hotkey);
     }
 }

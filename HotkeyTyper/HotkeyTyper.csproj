@@ -7,9 +7,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>0.0.0</Version>
-    <FileVersion>0.0.0</FileVersion>
-    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <!-- Version properties are set by build workflow -->
+    <!-- Default to dev build versions when building locally -->
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
+    <FileVersion Condition="'$(FileVersion)' == ''">0.0.0</FileVersion>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">0.0.0.0</AssemblyVersion>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">0.0.0-dev+local</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

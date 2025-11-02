@@ -52,7 +52,8 @@ jobs:
           /p:DebugSymbols=false
           /p:Version=$env:VERSION
           /p:FileVersion=$env:VERSION
-          /p:AssemblyVersion=0.0.0.0
+          /p:AssemblyVersion=$env:VERSION
+          /p:InformationalVersion=$env:VERSION
           -o publish/$env:RUNTIME_ID
 
       - name: Copy license and readme

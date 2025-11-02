@@ -949,7 +949,7 @@ public partial class Form1 : Form
             $"Hotkey Typer\n\n" +
             $"Version {versionStr}\n\n" +
             $"A simple utility to type predefined text snippets using a global hotkey (CTRL+SHIFT+1).\n\n" +
-            $"© 2024 James Montemagno",
+            $"© {DateTime.Now.Year} James Montemagno",
             "About Hotkey Typer",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);

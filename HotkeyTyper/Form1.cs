@@ -10,41 +10,42 @@ public partial class Form1 : Form
     private const int MOD_SHIFT = 0x0004;
     private const int WM_HOTKEY = 0x0312;
     private const int HOTKEY_ID = 1;
-    
+
     // Snippet constants
     private const string DefaultSnippetId = "default";
     private const string DefaultSnippetName = "Default";
     private const string DefaultSnippetContent = "Hello, this is my predefined text!";
-    
+
     // Settings file path
     private readonly string settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
-    
+
     // Typing speed (1 = slowest, 10 = fastest)
     private int typingSpeed = 5;
-    
+
     // Cancellation for in-progress typing
     private CancellationTokenSource? typingCts;
     private readonly KeyboardInputSender inputSender = new();
-    
+
     // Code mode flag (limits maximum speed)
     private bool hasCodeMode = false;
     private int lastNonCodeSpeed = 10; // persisted
     private ToolTip? speedToolTip;
-    
+
     // File source mode
     private bool fileSourceMode = false;
     private string fileSourcePath = string.Empty;
-    
+
     // Snippet management
     private List<TextSnippet> snippets = new();
     private string? activeSnippetId;
     private int nextSnippetNumber = 1; // Tracks next snippet number for unique naming
-    
+    private bool isLoadingUI = false; // Prevents saving during UI initialization
+
     // Reliability heuristics for high-speed typing
     private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
     private const int ContextualPauseMs = 140; // Extra pause after space following certain boundary chars
     private static readonly char[] ContextBoundaryChars = new[] { '>', ')', '}', ']' };
-    
+
     // Status color types
     private enum StatusType
     {
@@ -52,23 +53,23 @@ public partial class Form1 : Form
         Warning,
         Error
     }
-    
+
     // System tray components
     private NotifyIcon? trayIcon;
     private ContextMenuStrip? trayMenu;
     private Icon? appIcon; // custom generated icon
     private IntPtr appIconHandle = IntPtr.Zero; // native handle for cleanup
-    
+
     // Windows API imports
     [DllImport("user32.dll")]
     private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-    
+
     [DllImport("user32.dll")]
     private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-    
+
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
-    
+
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -82,22 +83,24 @@ public partial class Form1 : Form
         // when toggling ShowInTaskbar while minimizing to tray). Previously the hotkey
         // stopped working after minimizing because ShowInTaskbar can force a handle
         // recreation which invalidated the original RegisterHotKey binding.
-        
+
         // Update UI after form is fully loaded
         this.Load += Form1_Load;
     }
-    
+
     private void Form1_Load(object? sender, EventArgs e)
     {
+        // Ensure UI reflects loaded settings
         UpdateUIFromSettings();
-        
-        // Set initial status color
+
+        // Set initial status color and text
         if (lblStatus != null)
         {
+            lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
     }
-    
+
     /// <summary>
     /// Returns appropriate color for status messages based on current dark mode setting.
     /// </summary>
@@ -108,9 +111,11 @@ public partial class Form1 : Form
         StatusType.Error => Application.IsDarkModeEnabled ? Color.IndianRed : Color.Red,
         _ => SystemColors.ControlText
     };
-    
+
     private void UpdateUIFromSettings()
     {
+        isLoadingUI = true;
+
         // Update snippet ComboBox
         if (cmbSnippets != null)
         {
@@ -119,7 +124,7 @@ public partial class Form1 : Form
             {
                 cmbSnippets.Items.Add(snippet.Name);
             }
-            
+
             var activeSnippet = GetActiveSnippet();
             if (activeSnippet != null)
             {
@@ -130,14 +135,14 @@ public partial class Form1 : Form
                 }
             }
         }
-        
+
         // Update text box with loaded active snippet content
         if (txtPredefinedText != null)
         {
             var activeSnippet = GetActiveSnippet();
             txtPredefinedText.Text = activeSnippet?.Content ?? string.Empty;
         }
-        
+
         // Update typing speed slider with loaded value
         if (sliderTypingSpeed != null)
         {
@@ -151,7 +156,7 @@ public partial class Form1 : Form
             }
             sliderTypingSpeed.Value = Math.Min(Math.Max(typingSpeed, sliderTypingSpeed.Minimum), sliderTypingSpeed.Maximum);
         }
-        
+
         // Update speed indicator label
         if (lblSpeedIndicator != null)
         {
@@ -179,8 +184,10 @@ public partial class Form1 : Form
             txtPredefinedText.Enabled = !fileSourceMode;
         }
         UpdateTooltips();
+
+        isLoadingUI = false;
     }
-    
+
     private void LoadSettings()
     {
         try
@@ -205,12 +212,12 @@ public partial class Form1 : Form
                     {
                         fileSourcePath = settings.FileSourcePath;
                     }
-                    
+
                     // Migration: Convert old single PredefinedText to snippet if no snippets exist
                     if (settings.Snippets == null || settings.Snippets.Count == 0)
                     {
-                        string contentToMigrate = !string.IsNullOrEmpty(settings.PredefinedText) 
-                            ? settings.PredefinedText 
+                        string contentToMigrate = !string.IsNullOrEmpty(settings.PredefinedText)
+                            ? settings.PredefinedText
                             : DefaultSnippetContent;
                         snippets = new List<TextSnippet>
                         {
@@ -228,13 +235,13 @@ public partial class Form1 : Form
                     {
                         snippets = settings.Snippets;
                         activeSnippetId = settings.ActiveSnippetId;
-                        
+
                         // Validate active snippet exists
                         if (string.IsNullOrEmpty(activeSnippetId) || !snippets.Any(s => s.Id == activeSnippetId))
                         {
                             activeSnippetId = snippets.FirstOrDefault()?.Id;
                         }
-                        
+
                         // Update snippet counter for unique naming
                         UpdateSnippetCounter();
                     }
@@ -255,7 +262,7 @@ public partial class Form1 : Form
             InitializeDefaultSnippet();
         }
     }
-    
+
     private void UpdateSnippetCounter()
     {
         // Find highest numbered snippet to ensure unique naming
@@ -273,7 +280,7 @@ public partial class Form1 : Form
         }
         nextSnippetNumber = maxNum + 1;
     }
-    
+
     private void InitializeDefaultSnippet()
     {
         snippets = new List<TextSnippet>
@@ -289,18 +296,18 @@ public partial class Form1 : Form
         activeSnippetId = DefaultSnippetId;
         nextSnippetNumber = 2; // Next snippet will be "Snippet 2"
     }
-    
+
     private void SaveSettings()
     {
         try
         {
-            var settings = new AppSettings 
-            { 
+            var settings = new AppSettings
+            {
                 PredefinedText = string.Empty, // Deprecated but kept for compatibility
-                TypingSpeed = typingSpeed, 
-                HasCode = hasCodeMode, 
-                LastNonCodeSpeed = lastNonCodeSpeed, 
-                UseFileSource = fileSourceMode, 
+                TypingSpeed = typingSpeed,
+                HasCode = hasCodeMode,
+                LastNonCodeSpeed = lastNonCodeSpeed,
+                UseFileSource = fileSourceMode,
                 FileSourcePath = fileSourcePath,
                 Snippets = snippets,
                 ActiveSnippetId = activeSnippetId
@@ -313,7 +320,7 @@ public partial class Form1 : Form
             MessageBox.Show($"Error saving settings: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
-    
+
     private void InitializeSystemTray()
     {
         // Create system tray icon
@@ -336,16 +343,16 @@ public partial class Form1 : Form
             Visible = true,
             Icon = appIcon ?? SystemIcons.Application
         };
-        
+
         // Create context menu for tray icon
         trayMenu = new ContextMenuStrip();
         trayMenu.Items.Add("Show", null, ShowForm_Click);
         trayMenu.Items.Add("Exit", null, Exit_Click);
-        
+
         trayIcon.ContextMenuStrip = trayMenu;
         trayIcon.DoubleClick += ShowForm_Click;
     }
-    
+
     private void ShowForm_Click(object? sender, EventArgs e)
     {
         this.Show();
@@ -353,12 +360,12 @@ public partial class Form1 : Form
         this.ShowInTaskbar = true;
         this.BringToFront();
     }
-    
+
     private void Exit_Click(object? sender, EventArgs e)
     {
         Application.Exit();
     }
-    
+
     protected override void WndProc(ref Message m)
     {
         if (m.Msg == WM_HOTKEY && m.WParam.ToInt32() == HOTKEY_ID)
@@ -366,10 +373,10 @@ public partial class Form1 : Form
             // Hotkey was pressed, begin typing (if not already typing)
             StartTyping();
         }
-        
+
         base.WndProc(ref m);
     }
-    
+
     private void StartTyping()
     {
         // Ignore if already typing
@@ -432,7 +439,7 @@ public partial class Form1 : Form
         {
             // Flush any pending keys from the hotkey press
             SendKeys.Flush();
-            
+
             // Capture current foreground window so we can restore focus after initial delay
             IntPtr targetWindow = GetForegroundWindow();
 
@@ -444,12 +451,12 @@ public partial class Form1 : Form
             {
                 _ = SetForegroundWindow(targetWindow);
             }
-            
+
             // Calculate delay based on typing speed (1=slowest, 10=fastest)
             int baseDelay = 310 - (typingSpeed * 30); // Base delay calculation
             int variation = Math.Max(10, baseDelay / 3); // Variation amount
             Random random = new Random();
-            
+
             char prev = '\0';
             for (int index = 0; index < content.Length; index++)
             {
@@ -543,7 +550,7 @@ public partial class Form1 : Form
             _ => c.ToString()
         };
     }
-    
+
     private void BtnUpdate_Click(object? sender, EventArgs e)
     {
         if (fileSourceMode)
@@ -568,10 +575,10 @@ public partial class Form1 : Form
             }
         }
     }
-    
+
     private void TypingSpeedSlider_ValueChanged(object? sender, EventArgs e)
     {
-        if (sender is TrackBar slider)
+        if (sender is TrackBar slider && !isLoadingUI)
         {
             if (hasCodeMode && slider.Value > 8)
             {
@@ -588,7 +595,7 @@ public partial class Form1 : Form
 
     private void ChkHasCode_CheckedChanged(object? sender, EventArgs e)
     {
-        if (sender is CheckBox cb)
+        if (sender is CheckBox cb && !isLoadingUI)
         {
             hasCodeMode = cb.Checked;
             if (hasCodeMode)
@@ -627,7 +634,7 @@ public partial class Form1 : Form
 
     private void ChkUseFile_CheckedChanged(object? sender, EventArgs e)
     {
-        if (sender is CheckBox cb)
+        if (sender is CheckBox cb && !isLoadingUI)
         {
             fileSourceMode = cb.Checked;
             if (txtFilePath != null) txtFilePath.Enabled = fileSourceMode;
@@ -701,26 +708,26 @@ public partial class Form1 : Form
             speedToolTip.SetToolTip(lblSpeedIndicator, msg);
         }
     }
-    
+
     private string GetSpeedText(int speed)
     {
         return speed switch
         {
             1 or 2 => "Very Slow",
-            3 or 4 => "Slow", 
+            3 or 4 => "Slow",
             5 or 6 => "Normal",
             7 or 8 => "Fast",
             9 or 10 => "Very Fast",
             _ => "Normal"
         };
     }
-    
+
     private void BtnMinimize_Click(object sender, EventArgs e)
     {
         this.WindowState = FormWindowState.Minimized;
         this.ShowInTaskbar = false;
     }
-    
+
     private void BtnStop_Click(object? sender, EventArgs e)
     {
         if (typingCts != null && !typingCts.IsCancellationRequested)
@@ -737,39 +744,39 @@ public partial class Form1 : Form
             }
         }
     }
-    
+
     // Snippet UI event handlers
-    
+
     private void CmbSnippets_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        if (cmbSnippets == null) return;
-        
+        if (cmbSnippets == null || isLoadingUI) return;
+
         int index = cmbSnippets.SelectedIndex;
         if (index >= 0 && index < snippets.Count)
         {
             // Save current snippet content before switching
             SaveActiveSnippetContent();
-            
+
             // Switch to new snippet
             activeSnippetId = snippets[index].Id;
-            
+
             // Load new snippet content
             if (txtPredefinedText != null)
             {
                 txtPredefinedText.Text = snippets[index].Content;
             }
-            
+
             SaveSettings();
         }
     }
-    
+
     private void BtnNewSnippet_Click(object? sender, EventArgs e)
     {
         string? newName = InputDialog.Show(
             "Enter name for new snippet:",
             "New Snippet",
             $"Snippet {nextSnippetNumber}");
-        
+
         if (!string.IsNullOrWhiteSpace(newName))
         {
             CreateNewSnippet(newName);
@@ -781,17 +788,17 @@ public partial class Form1 : Form
             }
         }
     }
-    
+
     private void BtnDuplicateSnippet_Click(object? sender, EventArgs e)
     {
         var current = GetActiveSnippet();
         if (current == null) return;
-        
+
         string? newName = InputDialog.Show(
             "Enter name for copied snippet:",
             "Copy Snippet",
             $"{current.Name} (Copy)");
-        
+
         if (!string.IsNullOrWhiteSpace(newName))
         {
             DuplicateActiveSnippet(newName);
@@ -803,17 +810,17 @@ public partial class Form1 : Form
             }
         }
     }
-    
+
     private void BtnRenameSnippet_Click(object? sender, EventArgs e)
     {
         var current = GetActiveSnippet();
         if (current == null) return;
-        
+
         string? newName = InputDialog.Show(
             "Enter new name for snippet:",
             "Rename Snippet",
             current.Name);
-        
+
         if (!string.IsNullOrWhiteSpace(newName))
         {
             RenameActiveSnippet(newName);
@@ -825,7 +832,7 @@ public partial class Form1 : Form
             }
         }
     }
-    
+
     private void BtnDeleteSnippet_Click(object? sender, EventArgs e)
     {
         DeleteActiveSnippet();
@@ -836,12 +843,12 @@ public partial class Form1 : Form
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
     }
-    
+
     protected override void Dispose(bool disposing)
     {
         // Unregister hotkey when form is disposed
         UnregisterHotKey(this.Handle, HOTKEY_ID);
-        
+
         // Clean up system tray
         if (trayIcon != null)
         {
@@ -853,21 +860,21 @@ public partial class Form1 : Form
         {
             IconFactory.Destroy(ref appIcon, ref appIconHandle);
         }
-        
+
         if (disposing && (components != null))
         {
             components.Dispose();
         }
         base.Dispose(disposing);
     }
-    
+
     // Snippet management methods
-    
+
     private TextSnippet? GetActiveSnippet()
     {
         return snippets.FirstOrDefault(s => s.Id == activeSnippetId);
     }
-    
+
     private void SaveActiveSnippetContent()
     {
         var activeSnippet = GetActiveSnippet();
@@ -877,7 +884,7 @@ public partial class Form1 : Form
             activeSnippet.LastUsed = DateTime.Now;
         }
     }
-    
+
     private void CreateNewSnippet(string name)
     {
         // Validate: trim and check uniqueness (case-insensitive)
@@ -887,13 +894,13 @@ public partial class Form1 : Form
             MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
         {
             MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         string newId = Guid.NewGuid().ToString();
         var newSnippet = new TextSnippet
         {
@@ -907,12 +914,12 @@ public partial class Form1 : Form
         nextSnippetNumber++; // Increment for next default name
         SaveSettings();
     }
-    
+
     private void DuplicateActiveSnippet(string name)
     {
         var current = GetActiveSnippet();
         if (current == null) return;
-        
+
         // Validate: trim and check uniqueness (case-insensitive)
         name = name.Trim();
         if (string.IsNullOrEmpty(name))
@@ -920,13 +927,13 @@ public partial class Form1 : Form
             MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
         {
             MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         string newId = Guid.NewGuid().ToString();
         var duplicate = new TextSnippet
         {
@@ -939,12 +946,12 @@ public partial class Form1 : Form
         activeSnippetId = newId;
         SaveSettings();
     }
-    
+
     private void RenameActiveSnippet(string newName)
     {
         var current = GetActiveSnippet();
         if (current == null) return;
-        
+
         // Validate: trim and check uniqueness (case-insensitive)
         newName = newName.Trim();
         if (string.IsNullOrEmpty(newName))
@@ -952,17 +959,17 @@ public partial class Form1 : Form
             MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         if (snippets.Any(s => s.Id != current.Id && string.Equals(s.Name, newName, StringComparison.OrdinalIgnoreCase)))
         {
             MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         current.Name = newName;
         SaveSettings();
     }
-    
+
     private void DeleteActiveSnippet()
     {
         if (snippets.Count <= 1)
@@ -970,13 +977,13 @@ public partial class Form1 : Form
             MessageBox.Show("Cannot delete the last remaining snippet.", "Delete Not Allowed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        
+
         var current = GetActiveSnippet();
         if (current == null) return;
-        
+
         var result = MessageBox.Show($"Delete snippet '{current.Name}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         if (result != DialogResult.Yes) return;
-        
+
         snippets.Remove(current);
         activeSnippetId = snippets.FirstOrDefault()?.Id;
         SaveSettings();
@@ -1032,7 +1039,7 @@ public class AppSettings
     public int LastNonCodeSpeed { get; set; } = 10;
     public bool UseFileSource { get; set; } = false;
     public string FileSourcePath { get; set; } = string.Empty;
-    
+
     // New snippet-based system
     public List<TextSnippet>? Snippets { get; set; }
     public string? ActiveSnippetId { get; set; }

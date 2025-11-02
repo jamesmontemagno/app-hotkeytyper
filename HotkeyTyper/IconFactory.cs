@@ -186,8 +186,10 @@ internal static class IconFactory
             writer.Write(imageData);
         }
         
-        ms.Position = 0;
-        return new Icon(ms);
+        // Create a new memory stream with a copy of the data to avoid disposal issues
+        byte[] iconData = ms.ToArray();
+        var iconStream = new MemoryStream(iconData);
+        return new Icon(iconStream);
     }
 
     /// <summary>

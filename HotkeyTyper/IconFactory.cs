@@ -186,10 +186,14 @@ internal static class IconFactory
             writer.Write(imageData);
         }
         
-        // Create a new memory stream with a copy of the data to avoid disposal issues
+        // Get the complete icon data and create Icon from byte array
         byte[] iconData = ms.ToArray();
-        var iconStream = new MemoryStream(iconData);
-        return new Icon(iconStream);
+        
+        // Create a persistent MemoryStream that won't be disposed
+        // The Icon class requires the stream to remain alive, so we create it without using statement
+        // The stream will be cleaned up when the Icon is disposed
+        var persistentStream = new MemoryStream(iconData, false);
+        return new Icon(persistentStream);
     }
 
     /// <summary>

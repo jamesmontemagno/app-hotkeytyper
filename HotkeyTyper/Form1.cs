@@ -103,6 +103,8 @@ public partial class Form1 : Form
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
 
+#if !DEBUG
+
         // Check for updates in background (don't block UI)
         _ = Task.Run(async () =>
         {
@@ -122,6 +124,7 @@ public partial class Form1 : Form
                 });
             }
         });
+#endif
     }
 
     private void UpdateThemeMenuCheckmarks()
@@ -138,7 +141,7 @@ public partial class Form1 : Form
     private Color GetStatusColor(StatusType status) => status switch
     {
         StatusType.Success => AppColors.Success,
-      StatusType.Warning => AppColors.Warning,
+        StatusType.Warning => AppColors.Warning,
         StatusType.Error => AppColors.Error,
         _ => SystemColors.ControlText
     };
@@ -892,33 +895,33 @@ public partial class Form1 : Form
                 lblStatus.Text = "You're running the latest version!";
                 lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
-   
+
             // Show simple message for "no updates" - MessageBox is fine here
-            MessageBox.Show(this, 
+            MessageBox.Show(this,
     "You're running the latest version of Hotkey Typer.",
-          "No Updates", 
- MessageBoxButtons.OK, 
+          "No Updates",
+ MessageBoxButtons.OK,
       MessageBoxIcon.Information);
-   return;
-   }
+            return;
+        }
 
         var changelog = UpdateManager.GetChangelog(3);
- 
-    // Use custom dialog that respects dark mode
-    bool shouldUpdate = UpdateDialog.Show(this, UpdateManager.LatestVersion ?? "unknown", changelog);
+
+        // Use custom dialog that respects dark mode
+        bool shouldUpdate = UpdateDialog.Show(this, UpdateManager.LatestVersion ?? "unknown", changelog);
 
         if (shouldUpdate)
         {
             await PerformUpdateAsync();
         }
- else
- {
-       if (lblStatus != null)
-         {
-  lblStatus.Text = "Ready";
-         lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+        else
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Ready";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
-     }
+        }
     }
 
     private async Task PerformUpdateAsync()
@@ -957,8 +960,8 @@ public partial class Form1 : Form
         // Get version from assembly (set by build workflow)
         var version = typeof(Form1).Assembly.GetName().Version;
         string versionStr;
-        
-        if (version != null && version.Major > 0)
+
+        if (version != null && version.Build > 0)
         {
             // Use version from assembly (e.g., "0.0.123" from build)
             versionStr = $"{version.Major}.{version.Minor}.{version.Build}";

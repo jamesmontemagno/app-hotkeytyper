@@ -96,25 +96,12 @@ internal static class IconFactory
         using (var g = Graphics.FromImage(bmp))
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            
-            // Choose colors based on theme
-            Color gradientStart, gradientEnd, borderColor, textColor;
-            if (isLightTheme)
-            {
-                // Light theme: darker colors on light background
-                gradientStart = Color.MediumPurple;
-                gradientEnd = Color.DeepSkyBlue;
-                borderColor = Color.White;
-                textColor = Color.White;
-            }
-            else
-            {
-                // Dark theme: lighter colors that stand out on dark background
-                gradientStart = Color.FromArgb(200, 162, 235); // Lighter purple
-                gradientEnd = Color.FromArgb(135, 206, 250); // Lighter sky blue
-                borderColor = Color.FromArgb(240, 240, 240); // Light gray
-                textColor = Color.FromArgb(240, 240, 240);
-            }
+    
+            // Use centralized colors
+            Color gradientStart = isLightTheme ? Color.MediumPurple : AppColors.IconGradientStart;
+            Color gradientEnd = isLightTheme ? Color.DeepSkyBlue : AppColors.IconGradientEnd;
+            Color borderColor = AppColors.IconBorder;
+            Color textColor = AppColors.IconText;
 
             using var path = new GraphicsPath();
             path.AddEllipse(new Rectangle(0, 0, size - 1, size - 1));
@@ -122,7 +109,7 @@ internal static class IconFactory
             {
                 g.FillPath(brush, path);
             }
-            
+  
             // Scale border width proportionally
             float borderWidth = Math.Max(1f, size / 16f);
             using var borderPen = new Pen(borderColor, borderWidth);
@@ -139,7 +126,7 @@ internal static class IconFactory
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             g.DrawString(text, font, textBrush, x, y);
         }
-        
+   
         return bmp;
     }
 

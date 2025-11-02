@@ -93,12 +93,43 @@ public partial class Form1 : Form
         // Ensure UI reflects loaded settings
         UpdateUIFromSettings();
 
+        // Update theme menu checkmarks
+        UpdateThemeMenuCheckmarks();
+
         // Set initial status color and text
         if (lblStatus != null)
         {
             lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
+
+        // Check for updates in background (don't block UI)
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000); // Wait 3 seconds after startup
+            var hasUpdate = await UpdateManager.CheckForUpdatesAsync();
+
+            if (hasUpdate)
+            {
+                // Show subtle notification in status bar
+                Invoke(() =>
+                {
+                    if (lblStatus != null)
+                    {
+                        lblStatus.Text = $"Update available: v{UpdateManager.LatestVersion} (Click Help > Check for Updates)";
+                        lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+                    }
+                });
+            }
+        });
+    }
+
+    private void UpdateThemeMenuCheckmarks()
+    {
+        var currentTheme = ThemeManager.CurrentTheme;
+        mnuThemeSystem.Checked = currentTheme == ThemeMode.System;
+        mnuThemeLight.Checked = currentTheme == ThemeMode.Light;
+        mnuThemeDark.Checked = currentTheme == ThemeMode.Dark;
     }
 
     /// <summary>
@@ -106,9 +137,9 @@ public partial class Form1 : Form
     /// </summary>
     private Color GetStatusColor(StatusType status) => status switch
     {
-        StatusType.Success => Application.IsDarkModeEnabled ? Color.LightGreen : Color.Green,
-        StatusType.Warning => Application.IsDarkModeEnabled ? Color.Orange : Color.DarkOrange,
-        StatusType.Error => Application.IsDarkModeEnabled ? Color.IndianRed : Color.Red,
+        StatusType.Success => AppColors.Success,
+      StatusType.Warning => AppColors.Warning,
+        StatusType.Error => AppColors.Error,
         _ => SystemColors.ControlText
     };
 
@@ -842,6 +873,137 @@ public partial class Form1 : Form
             lblStatus.Text = "Status: Snippet deleted";
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
+    }
+
+    private async void MnuCheckForUpdates_Click(object? sender, EventArgs e)
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Checking for updates...";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+        }
+
+        var updateAvailable = await UpdateManager.CheckForUpdatesAsync();
+
+        if (!updateAvailable)
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "You're running the latest version!";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+            }
+   
+            // Show simple message for "no updates" - MessageBox is fine here
+            MessageBox.Show(this, 
+    "You're running the latest version of Hotkey Typer.",
+          "No Updates", 
+ MessageBoxButtons.OK, 
+      MessageBoxIcon.Information);
+   return;
+   }
+
+        var changelog = UpdateManager.GetChangelog(3);
+ 
+    // Use custom dialog that respects dark mode
+    bool shouldUpdate = UpdateDialog.Show(this, UpdateManager.LatestVersion ?? "unknown", changelog);
+
+        if (shouldUpdate)
+        {
+            await PerformUpdateAsync();
+        }
+ else
+ {
+       if (lblStatus != null)
+         {
+  lblStatus.Text = "Ready";
+         lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+            }
+     }
+    }
+
+    private async Task PerformUpdateAsync()
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Downloading update...";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+        }
+
+        var progress = new Progress<double>(percent =>
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = $"Downloading update: {percent:F0}%";
+            }
+        });
+
+        var success = await UpdateManager.DownloadAndInstallUpdateAsync(progress);
+
+        if (!success)
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Update failed";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Error);
+            }
+            MessageBox.Show("Failed to download or install the update. Please try again later.",
+                "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        // If successful, app will restart automatically
+    }
+
+    private void MnuAbout_Click(object? sender, EventArgs e)
+    {
+        // Get version from assembly (set by build workflow)
+        var version = typeof(Form1).Assembly.GetName().Version;
+        string versionStr;
+        
+        if (version != null && version.Major > 0)
+        {
+            // Use version from assembly (e.g., "0.0.123" from build)
+            versionStr = $"{version.Major}.{version.Minor}.{version.Build}";
+        }
+        else
+        {
+            // Development build fallback
+            versionStr = "dev";
+        }
+
+        // Use custom dialog that respects dark mode
+        AboutDialog.Show(this, versionStr);
+    }
+
+    private void MnuThemeSystem_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.SetTheme(ThemeMode.System);
+        ShowThemeChangeMessage("System");
+    }
+
+    private void MnuThemeLight_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.SetTheme(ThemeMode.Light);
+        ShowThemeChangeMessage("Light");
+    }
+
+    private void MnuThemeDark_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.SetTheme(ThemeMode.Dark);
+        ShowThemeChangeMessage("Dark");
+    }
+
+    private void ShowThemeChangeMessage(string themeName)
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = $"Theme set to {themeName}. Restart app to apply changes.";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+        }
+
+        MessageBox.Show(
+            $"Theme changed to {themeName}.\n\nPlease restart the application for the changes to take effect.",
+            "Theme Changed",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 
     protected override void Dispose(bool disposing)

@@ -21,370 +21,381 @@ partial class Form1
     /// </summary>
     private void InitializeComponent()
     {
+        // 1. Instantiate controls first
+        MenuStrip menuStrip = new MenuStrip();
+        ToolStripMenuItem mnuHelp = new ToolStripMenuItem();
+        ToolStripMenuItem mnuCheckForUpdates = new ToolStripMenuItem();
+        ToolStripMenuItem mnuAbout = new ToolStripMenuItem();
+        ToolStripMenuItem mnuTheme = new ToolStripMenuItem();
+        mnuThemeSystem = new ToolStripMenuItem();
+        mnuThemeLight = new ToolStripMenuItem();
+        mnuThemeDark = new ToolStripMenuItem();
+        TableLayoutPanel mainLayout = new TableLayoutPanel();
+        Label lblInstructions = new Label();
+        TableLayoutPanel snippetSection = new TableLayoutPanel();
+        Label lblSnippet = new Label();
+        cmbSnippets = new ComboBox();
+        FlowLayoutPanel buttonFlow = new FlowLayoutPanel();
+        Button btnNewSnippet = new Button();
+        Button btnDuplicateSnippet = new Button();
+        Button btnRenameSnippet = new Button();
+        Button btnDeleteSnippet = new Button();
+        txtPredefinedText = new TextBox();
+        TableLayoutPanel speedSection = new TableLayoutPanel();
+        Label lblTypingSpeed = new Label();
+        sliderTypingSpeed = new LimitedTrackBar();
+        lblSpeedIndicator = new Label();
+        TableLayoutPanel optionsSection = new TableLayoutPanel();
+        chkHasCode = new CheckBox();
+        chkUseFile = new CheckBox();
+        TableLayoutPanel fileSection = new TableLayoutPanel();
+        txtFilePath = new TextBox();
+        btnBrowseFile = new Button();
+        Panel spacer = new Panel();
+        FlowLayoutPanel actionSection = new FlowLayoutPanel();
+        Button btnUpdate = new Button();
+        Button btnMinimize = new Button();
+        btnStop = new Button();
+        lblStatus = new Label();
+
+        // 2. Components
         components = new System.ComponentModel.Container();
-        
-        // Form properties
-        AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(520, 640);
-        Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
-        StartPosition = FormStartPosition.CenterScreen;
-        MaximizeBox = true;
-        FormBorderStyle = FormBorderStyle.Sizable;
-        MinimumSize = new Size(520, 640);
-        
-        // Create controls
-        CreateControls();
-    }
-    
-    private void CreateControls()
-    {
-        // Create main TableLayoutPanel
-        var mainLayout = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 8,
-            Padding = new Padding(10)
-        };
-        
-        // Configure column (single column at 100%)
+
+        // 3. Suspend layout
+        menuStrip.SuspendLayout();
+        mainLayout.SuspendLayout();
+        snippetSection.SuspendLayout();
+        buttonFlow.SuspendLayout();
+        speedSection.SuspendLayout();
+        optionsSection.SuspendLayout();
+        fileSection.SuspendLayout();
+        actionSection.SuspendLayout();
+        SuspendLayout();
+
+        // 4. Configure MenuStrip
+        menuStrip.Name = "menuStrip";
+        menuStrip.Size = new Size(520, 24);
+        menuStrip.TabIndex = 0;
+
+        // Configure menu items
+        mnuHelp.Name = "mnuHelp";
+        mnuHelp.Text = "&Help";
+        mnuHelp.DropDownItems.Add(mnuCheckForUpdates);
+        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
+        mnuHelp.DropDownItems.Add(mnuTheme);
+        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
+        mnuHelp.DropDownItems.Add(mnuAbout);
+
+        mnuCheckForUpdates.Name = "mnuCheckForUpdates";
+        mnuCheckForUpdates.Text = "Check for &Updates...";
+        mnuCheckForUpdates.Click += MnuCheckForUpdates_Click;
+
+        mnuTheme.Name = "mnuTheme";
+        mnuTheme.Text = "&Theme";
+        mnuTheme.DropDownItems.Add(mnuThemeSystem);
+        mnuTheme.DropDownItems.Add(mnuThemeLight);
+        mnuTheme.DropDownItems.Add(mnuThemeDark);
+
+        mnuThemeSystem.Name = "mnuThemeSystem";
+        mnuThemeSystem.Text = "&System";
+        mnuThemeSystem.Click += MnuThemeSystem_Click;
+
+        mnuThemeLight.Name = "mnuThemeLight";
+        mnuThemeLight.Text = "&Light";
+        mnuThemeLight.Click += MnuThemeLight_Click;
+
+        mnuThemeDark.Name = "mnuThemeDark";
+        mnuThemeDark.Text = "&Dark";
+        mnuThemeDark.Click += MnuThemeDark_Click;
+
+        mnuAbout.Name = "mnuAbout";
+        mnuAbout.Text = "&About...";
+        mnuAbout.Click += MnuAbout_Click;
+
+        menuStrip.Items.Add(mnuHelp);
+
+        // Configure main layout
+        mainLayout.ColumnCount = 1;
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        
-        // Configure rows
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 0: Instructions
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 1: Snippet management
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F)); // Row 2: Text content (40%)
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 3: Typing speed
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 4: Options checkboxes
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 5: File path
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F)); // Row 6: Spacer (fill remaining)
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Row 7: Action buttons
-        
-        // Row 0: Instructions Label
-        var lblInstructions = new Label
-        {
-            Text = "Select or manage snippets below.\nPress CTRL+SHIFT+1 anywhere to type active snippet:",
-            AutoSize = true,
-            Anchor = AnchorStyles.Left | AnchorStyles.Top,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 10F, FontStyle.Regular)
-        };
+        mainLayout.Dock = DockStyle.Fill;
+        mainLayout.Location = new Point(0, 24);
+        mainLayout.Name = "mainLayout";
+        mainLayout.Padding = new Padding(10);
+        mainLayout.RowCount = 8;
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainLayout.Size = new Size(520, 616);
+        mainLayout.TabIndex = 1;
+
+        // Row 0: Instructions
+        lblInstructions.AutoSize = true;
+        lblInstructions.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+        lblInstructions.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+        lblInstructions.Margin = new Padding(3);
+        lblInstructions.Text = "Select or manage snippets below.\nPress CTRL+SHIFT+1 anywhere to type active snippet:";
         mainLayout.Controls.Add(lblInstructions, 0, 0);
-        
-        // Row 1: Snippet Management Section (nested TLP)
-        var snippetSection = new TableLayoutPanel
-        {
-            AutoSize = true,
-            Dock = DockStyle.Fill,
-            ColumnCount = 2,
-            RowCount = 2,
-            Margin = new Padding(3)
-        };
-        snippetSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Label column
-        snippetSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // Content column
-        snippetSection.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // ComboBox row
-        snippetSection.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Buttons row
-        
-        var lblSnippet = new Label
-        {
-            Text = "Snippet:",
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        // Row 1: Snippet section
+        snippetSection.AutoSize = true;
+        snippetSection.ColumnCount = 2;
+        snippetSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        snippetSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        snippetSection.Dock = DockStyle.Fill;
+        snippetSection.Margin = new Padding(3);
+        snippetSection.RowCount = 2;
+        snippetSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        snippetSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        lblSnippet.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        lblSnippet.Font = new Font("Segoe UI", 9F);
+        lblSnippet.Margin = new Padding(3);
+        lblSnippet.Text = "Snippet:";
         snippetSection.Controls.Add(lblSnippet, 0, 0);
-        
-        var cmbSnippets = new ComboBox
-        {
-            Name = "cmbSnippets",
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
-            Margin = new Padding(3),
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        cmbSnippets.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        cmbSnippets.DropDownStyle = ComboBoxStyle.DropDownList;
+        cmbSnippets.Font = new Font("Segoe UI", 9F);
+        cmbSnippets.Margin = new Padding(3);
+        cmbSnippets.Name = "cmbSnippets";
         cmbSnippets.SelectedIndexChanged += CmbSnippets_SelectedIndexChanged;
         snippetSection.Controls.Add(cmbSnippets, 1, 0);
-        
-        // Buttons in a FlowLayoutPanel for better wrapping
-        var buttonFlow = new FlowLayoutPanel
-        {
-            AutoSize = true,
-            Dock = DockStyle.Fill,
-            Margin = new Padding(3, 0, 3, 3),
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = true
-        };
-        
-        var btnNewSnippet = new Button
-        {
-            Name = "btnNewSnippet",
-            Text = "New",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 3, 0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        buttonFlow.AutoSize = true;
+        buttonFlow.Dock = DockStyle.Fill;
+        buttonFlow.FlowDirection = FlowDirection.LeftToRight;
+        buttonFlow.Margin = new Padding(3, 0, 3, 3);
+        buttonFlow.WrapContents = true;
+
+        btnNewSnippet.AutoSize = true;
+        btnNewSnippet.Font = new Font("Segoe UI", 9F);
+        btnNewSnippet.Margin = new Padding(0, 0, 3, 0);
+        btnNewSnippet.Name = "btnNewSnippet";
+        btnNewSnippet.Text = "New";
         btnNewSnippet.Click += BtnNewSnippet_Click;
         buttonFlow.Controls.Add(btnNewSnippet);
-        
-        var btnDuplicateSnippet = new Button
-        {
-            Name = "btnDuplicateSnippet",
-            Text = "Copy",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 3, 0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        btnDuplicateSnippet.AutoSize = true;
+        btnDuplicateSnippet.Font = new Font("Segoe UI", 9F);
+        btnDuplicateSnippet.Margin = new Padding(0, 0, 3, 0);
+        btnDuplicateSnippet.Name = "btnDuplicateSnippet";
+        btnDuplicateSnippet.Text = "Copy";
         btnDuplicateSnippet.Click += BtnDuplicateSnippet_Click;
         buttonFlow.Controls.Add(btnDuplicateSnippet);
-        
-        var btnRenameSnippet = new Button
-        {
-            Name = "btnRenameSnippet",
-            Text = "Rename",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 3, 0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        btnRenameSnippet.AutoSize = true;
+        btnRenameSnippet.Font = new Font("Segoe UI", 9F);
+        btnRenameSnippet.Margin = new Padding(0, 0, 3, 0);
+        btnRenameSnippet.Name = "btnRenameSnippet";
+        btnRenameSnippet.Text = "Rename";
         btnRenameSnippet.Click += BtnRenameSnippet_Click;
         buttonFlow.Controls.Add(btnRenameSnippet);
-        
-        var btnDeleteSnippet = new Button
-        {
-            Name = "btnDeleteSnippet",
-            Text = "Delete",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 0, 0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        btnDeleteSnippet.AutoSize = true;
+        btnDeleteSnippet.Font = new Font("Segoe UI", 9F);
+        btnDeleteSnippet.Margin = new Padding(0);
+        btnDeleteSnippet.Name = "btnDeleteSnippet";
+        btnDeleteSnippet.Text = "Delete";
         btnDeleteSnippet.Click += BtnDeleteSnippet_Click;
         buttonFlow.Controls.Add(btnDeleteSnippet);
-        
+
         snippetSection.Controls.Add(buttonFlow, 1, 1);
         mainLayout.Controls.Add(snippetSection, 0, 1);
-        
-        // Row 2: Text Content Area (MultiLine TextBox)
-        var txtPredefinedText = new TextBox
-        {
-            Name = "txtPredefinedText",
-            Text = string.Empty,
-            Multiline = true,
-            ScrollBars = ScrollBars.Vertical,
-            Dock = DockStyle.Fill,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        // Row 2: Text content
+        txtPredefinedText.Dock = DockStyle.Fill;
+        txtPredefinedText.Font = new Font("Segoe UI", 9F);
+        txtPredefinedText.Margin = new Padding(3);
+        txtPredefinedText.Multiline = true;
+        txtPredefinedText.Name = "txtPredefinedText";
+        txtPredefinedText.ScrollBars = ScrollBars.Vertical;
         mainLayout.Controls.Add(txtPredefinedText, 0, 2);
-        
-        // Row 3: Typing Speed Section (nested TLP)
-        var speedSection = new TableLayoutPanel
-        {
-            AutoSize = true,
-            Dock = DockStyle.Fill,
-            ColumnCount = 3,
-            RowCount = 1,
-            Margin = new Padding(3)
-        };
-        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Label
-        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // Slider
-        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Speed indicator
+
+        // Row 3: Speed section
+        speedSection.AutoSize = true;
+        speedSection.ColumnCount = 3;
+        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        speedSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        speedSection.Dock = DockStyle.Fill;
+        speedSection.Margin = new Padding(3);
+        speedSection.RowCount = 1;
         speedSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        
-        var lblTypingSpeed = new Label
-        {
-            Text = "Typing Speed:",
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        lblTypingSpeed.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        lblTypingSpeed.Font = new Font("Segoe UI", 9F);
+        lblTypingSpeed.Margin = new Padding(3);
+        lblTypingSpeed.Text = "Typing Speed:";
         speedSection.Controls.Add(lblTypingSpeed, 0, 0);
-        
-        var sliderTypingSpeed = new LimitedTrackBar
-        {
-            Name = "sliderTypingSpeed",
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
-            Margin = new Padding(3),
-            Minimum = 1,
-            Maximum = 10,
-            Value = typingSpeed,
-            TickFrequency = 1,
-            TickStyle = TickStyle.None,
-            SoftMax = hasCodeMode ? 8 : null
-        };
+
+        sliderTypingSpeed.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        sliderTypingSpeed.Margin = new Padding(3);
+        sliderTypingSpeed.Maximum = 10;
+        sliderTypingSpeed.Minimum = 1;
+        sliderTypingSpeed.Name = "sliderTypingSpeed";
+        sliderTypingSpeed.TickFrequency = 1;
+        sliderTypingSpeed.TickStyle = TickStyle.None;
+        sliderTypingSpeed.Value = typingSpeed;
         sliderTypingSpeed.ValueChanged += TypingSpeedSlider_ValueChanged;
         speedSection.Controls.Add(sliderTypingSpeed, 1, 0);
-        
-        var lblSpeedIndicator = new Label
-        {
-            Name = "lblSpeedIndicator",
-            Text = "Normal",
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 9F, FontStyle.Italic)
-        };
+
+        lblSpeedIndicator.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        lblSpeedIndicator.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+        lblSpeedIndicator.Margin = new Padding(3);
+        lblSpeedIndicator.Name = "lblSpeedIndicator";
+        lblSpeedIndicator.Text = "Normal";
         speedSection.Controls.Add(lblSpeedIndicator, 2, 0);
-        
+
         mainLayout.Controls.Add(speedSection, 0, 3);
-        
-        // Row 4: Options Checkboxes (nested TLP)
-        var optionsSection = new TableLayoutPanel
-        {
-            AutoSize = true,
-            Dock = DockStyle.Fill,
-            ColumnCount = 2,
-            RowCount = 1,
-            Margin = new Padding(3)
-        };
+
+        // Row 4: Options section
+        optionsSection.AutoSize = true;
+        optionsSection.ColumnCount = 2;
         optionsSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         optionsSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        optionsSection.Dock = DockStyle.Fill;
+        optionsSection.Margin = new Padding(3);
+        optionsSection.RowCount = 1;
         optionsSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        
-        var chkHasCode = new CheckBox
-        {
-            Name = "chkHasCode",
-            Text = "Has Code (limit speed)",
-            AutoSize = true,
-            Anchor = AnchorStyles.Left,
-            Margin = new Padding(3),
-            Checked = hasCodeMode,
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        chkHasCode.Anchor = AnchorStyles.Left;
+        chkHasCode.AutoSize = true;
+        chkHasCode.Checked = hasCodeMode;
+        chkHasCode.Font = new Font("Segoe UI", 9F);
+        chkHasCode.Margin = new Padding(3);
+        chkHasCode.Name = "chkHasCode";
+        chkHasCode.Text = "Has Code (limit speed)";
         chkHasCode.CheckedChanged += ChkHasCode_CheckedChanged;
         optionsSection.Controls.Add(chkHasCode, 0, 0);
-        
-        var chkUseFile = new CheckBox
-        {
-            Name = "chkUseFile",
-            Text = "Use File (.md/.txt)",
-            AutoSize = true,
-            Anchor = AnchorStyles.Left,
-            Margin = new Padding(3),
-            Checked = false,
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        chkUseFile.Anchor = AnchorStyles.Left;
+        chkUseFile.AutoSize = true;
+        chkUseFile.Font = new Font("Segoe UI", 9F);
+        chkUseFile.Margin = new Padding(3);
+        chkUseFile.Name = "chkUseFile";
+        chkUseFile.Text = "Use File (.md/.txt)";
         chkUseFile.CheckedChanged += ChkUseFile_CheckedChanged;
         optionsSection.Controls.Add(chkUseFile, 1, 0);
-        
+
         mainLayout.Controls.Add(optionsSection, 0, 4);
-        
-        // Row 5: File Path Section (nested TLP)
-        var fileSection = new TableLayoutPanel
-        {
-            AutoSize = true,
-            Dock = DockStyle.Fill,
-            ColumnCount = 2,
-            RowCount = 1,
-            Margin = new Padding(3)
-        };
-        fileSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // TextBox
-        fileSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Button
+
+        // Row 5: File section
+        fileSection.AutoSize = true;
+        fileSection.ColumnCount = 2;
+        fileSection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        fileSection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        fileSection.Dock = DockStyle.Fill;
+        fileSection.Margin = new Padding(3);
+        fileSection.RowCount = 1;
         fileSection.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        
-        var txtFilePath = new TextBox
-        {
-            Name = "txtFilePath",
-            Text = string.Empty,
-            Enabled = false,
-            ReadOnly = true,
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        txtFilePath.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        txtFilePath.Enabled = false;
+        txtFilePath.Font = new Font("Segoe UI", 9F);
+        txtFilePath.Margin = new Padding(3);
+        txtFilePath.Name = "txtFilePath";
+        txtFilePath.ReadOnly = true;
         fileSection.Controls.Add(txtFilePath, 0, 0);
-        
-        var btnBrowseFile = new Button
-        {
-            Name = "btnBrowseFile",
-            Text = "Browse…",
-            AutoSize = true,
-            Enabled = false,
-            Anchor = AnchorStyles.Left,
-            Margin = new Padding(3),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        btnBrowseFile.Anchor = AnchorStyles.Left;
+        btnBrowseFile.AutoSize = true;
+        btnBrowseFile.Enabled = false;
+        btnBrowseFile.Font = new Font("Segoe UI", 9F);
+        btnBrowseFile.Margin = new Padding(3);
+        btnBrowseFile.Name = "btnBrowseFile";
+        btnBrowseFile.Text = "Browse…";
         btnBrowseFile.Click += BtnBrowseFile_Click;
         fileSection.Controls.Add(btnBrowseFile, 1, 0);
-        
+
         mainLayout.Controls.Add(fileSection, 0, 5);
-        
-        // Row 6: Spacer (empty panel to fill remaining space)
-        var spacer = new Panel
-        {
-            Dock = DockStyle.Fill,
-            Margin = new Padding(0)
-        };
+
+        // Row 6: Spacer
+        spacer.Dock = DockStyle.Fill;
+        spacer.Margin = new Padding(0);
         mainLayout.Controls.Add(spacer, 0, 6);
-        
-        // Row 7: Action Buttons (FlowLayoutPanel with buttons and status)
-        var actionSection = new FlowLayoutPanel
-        {
-            AutoSize = true,
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = true,
-            Margin = new Padding(3)
-        };
-        
-        var btnUpdate = new Button
-        {
-            Text = "Save",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 5, 0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        // Row 7: Action section
+        actionSection.AutoSize = true;
+        actionSection.Dock = DockStyle.Fill;
+        actionSection.FlowDirection = FlowDirection.LeftToRight;
+        actionSection.Margin = new Padding(3);
+        actionSection.WrapContents = true;
+
+        btnUpdate.AutoSize = true;
+        btnUpdate.Font = new Font("Segoe UI", 9F);
+        btnUpdate.Margin = new Padding(0, 0, 5, 0);
+        btnUpdate.Text = "Save";
         btnUpdate.Click += BtnUpdate_Click;
         actionSection.Controls.Add(btnUpdate);
-        
-        var btnMinimize = new Button
-        {
-            Text = "Minimize to Tray",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 5, 0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        btnMinimize.AutoSize = true;
+        btnMinimize.Font = new Font("Segoe UI", 9F);
+        btnMinimize.Margin = new Padding(0, 0, 5, 0);
+        btnMinimize.Text = "Minimize to Tray";
         btnMinimize.Click += BtnMinimize_Click;
         actionSection.Controls.Add(btnMinimize);
-        
-        var btnStop = new Button
-        {
-            Name = "btnStop",
-            Text = "Stop Typing",
-            AutoSize = true,
-            Margin = new Padding(0, 0, 10, 0),
-            Font = new Font("Segoe UI", 9F),
-            Enabled = false
-        };
+
+        btnStop.AutoSize = true;
+        btnStop.Enabled = false;
+        btnStop.Font = new Font("Segoe UI", 9F);
+        btnStop.Margin = new Padding(0, 0, 10, 0);
+        btnStop.Name = "btnStop";
+        btnStop.Text = "Stop Typing";
         btnStop.Click += BtnStop_Click;
         actionSection.Controls.Add(btnStop);
-        
-        var lblStatus = new Label
-        {
-            Name = "lblStatus",
-            Text = "Status: Hotkey CTRL+SHIFT+1 is active",
-            AutoSize = true,
-            Anchor = AnchorStyles.Left,
-            Margin = new Padding(0),
-            Font = new Font("Segoe UI", 9F)
-        };
+
+        lblStatus.Anchor = AnchorStyles.Left;
+        lblStatus.AutoSize = true;
+        lblStatus.Font = new Font("Segoe UI", 9F);
+        lblStatus.Margin = new Padding(0);
+        lblStatus.Name = "lblStatus";
+        lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
         actionSection.Controls.Add(lblStatus);
-        
+
         mainLayout.Controls.Add(actionSection, 0, 7);
-        
-        // Add main layout to form
+
+        // 5. Configure Form LAST
+        AutoScaleMode = AutoScaleMode.Font;
+        ClientSize = new Size(520, 640);
         Controls.Add(mainLayout);
-        
-        // Store references for later use
-        this.cmbSnippets = cmbSnippets;
-        this.txtPredefinedText = txtPredefinedText;
-        this.sliderTypingSpeed = sliderTypingSpeed;
-        this.lblSpeedIndicator = lblSpeedIndicator;
-        this.lblStatus = lblStatus;
-        this.btnStop = btnStop;
-        this.chkHasCode = chkHasCode;
-        this.chkUseFile = chkUseFile;
-        this.txtFilePath = txtFilePath;
-        this.btnBrowseFile = btnBrowseFile;
+        Controls.Add(menuStrip);
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MainMenuStrip = menuStrip;
+        MaximizeBox = true;
+        MinimumSize = new Size(520, 640);
+        Name = "Form1";
+        StartPosition = FormStartPosition.CenterScreen;
+        Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";
+
+        // 6. Resume layout
+        menuStrip.ResumeLayout(false);
+        menuStrip.PerformLayout();
+        mainLayout.ResumeLayout(false);
+        mainLayout.PerformLayout();
+        snippetSection.ResumeLayout(false);
+        snippetSection.PerformLayout();
+        buttonFlow.ResumeLayout(false);
+        buttonFlow.PerformLayout();
+        speedSection.ResumeLayout(false);
+        speedSection.PerformLayout();
+        optionsSection.ResumeLayout(false);
+        optionsSection.PerformLayout();
+        fileSection.ResumeLayout(false);
+        fileSection.PerformLayout();
+        actionSection.ResumeLayout(false);
+        actionSection.PerformLayout();
+        ResumeLayout(false);
+        PerformLayout();
     }
-    
+
+    #endregion
+
+    // 7. Backing fields at EOF
     private ComboBox cmbSnippets;
     private TextBox txtPredefinedText;
     private TrackBar sliderTypingSpeed;
@@ -395,6 +406,7 @@ partial class Form1
     private CheckBox chkUseFile;
     private TextBox txtFilePath;
     private Button btnBrowseFile;
-
-    #endregion
+    private ToolStripMenuItem mnuThemeSystem;
+    private ToolStripMenuItem mnuThemeLight;
+    private ToolStripMenuItem mnuThemeDark;
 }

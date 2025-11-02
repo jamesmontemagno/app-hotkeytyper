@@ -32,8 +32,38 @@ partial class Form1
         FormBorderStyle = FormBorderStyle.Sizable;
         MinimumSize = new Size(520, 640);
         
+        // Create menu
+        CreateMenu();
+        
         // Create controls
         CreateControls();
+    }
+    
+    private void CreateMenu()
+    {
+        var menuStrip = new MenuStrip
+        {
+            Name = "menuStrip"
+        };
+        
+        var mnuHelp = new ToolStripMenuItem
+        {
+            Name = "mnuHelp",
+            Text = "&Help"
+        };
+        
+        var mnuCheckForUpdates = new ToolStripMenuItem
+        {
+            Name = "mnuCheckForUpdates",
+            Text = "Check for &Updates..."
+        };
+        mnuCheckForUpdates.Click += MnuCheckForUpdates_Click;
+        
+        mnuHelp.DropDownItems.Add(mnuCheckForUpdates);
+        menuStrip.Items.Add(mnuHelp);
+        
+        Controls.Add(menuStrip);
+        MainMenuStrip = menuStrip;
     }
     
     private void CreateControls()

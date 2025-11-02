@@ -99,6 +99,26 @@ public partial class Form1 : Form
             lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
+
+        // Check for updates in background (don't block UI)
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000); // Wait 3 seconds after startup
+            var hasUpdate = await UpdateManager.CheckForUpdatesAsync();
+
+            if (hasUpdate)
+            {
+                // Show subtle notification in status bar
+                Invoke(() =>
+                {
+                    if (lblStatus != null)
+                    {
+                        lblStatus.Text = $"Update available: v{UpdateManager.LatestVersion} (Click Help > Check for Updates)";
+                        lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+                    }
+                });
+            }
+        });
     }
 
     /// <summary>
@@ -842,6 +862,82 @@ public partial class Form1 : Form
             lblStatus.Text = "Status: Snippet deleted";
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
+    }
+
+    private async void MnuCheckForUpdates_Click(object? sender, EventArgs e)
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Checking for updates...";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+        }
+
+        var updateAvailable = await UpdateManager.CheckForUpdatesAsync();
+
+        if (!updateAvailable)
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "You're running the latest version!";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+            }
+            MessageBox.Show($"You're running the latest version of Hotkey Typer.",
+                "No Updates", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var changelog = UpdateManager.GetChangelog(3);
+        var result = MessageBox.Show(
+            $"A new version ({UpdateManager.LatestVersion}) is available!\n\n" +
+            $"Would you like to download and install it?\n\n" +
+            $"Recent Changes:\n{changelog}",
+            "Update Available",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Information);
+
+        if (result == DialogResult.Yes)
+        {
+            await PerformUpdateAsync();
+        }
+        else
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Ready";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+            }
+        }
+    }
+
+    private async Task PerformUpdateAsync()
+    {
+        if (lblStatus != null)
+        {
+            lblStatus.Text = "Downloading update...";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+        }
+
+        var progress = new Progress<double>(percent =>
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = $"Downloading update: {percent:F0}%";
+            }
+        });
+
+        var success = await UpdateManager.DownloadAndInstallUpdateAsync(progress);
+
+        if (!success)
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Update failed";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Error);
+            }
+            MessageBox.Show("Failed to download or install the update. Please try again later.",
+                "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        // If successful, app will restart automatically
     }
 
     protected override void Dispose(bool disposing)

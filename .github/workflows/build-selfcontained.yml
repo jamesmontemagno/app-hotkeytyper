@@ -60,6 +60,13 @@ jobs:
           Copy-Item README.md publish/$env:RUNTIME_ID -ErrorAction SilentlyContinue
           Copy-Item LICENSE publish/$env:RUNTIME_ID -ErrorAction SilentlyContinue
 
+      - name: Rename executable for Updatum (${{ matrix.rid }})
+        id: rename_exe
+        run: |
+          $exeName = "HotkeyTyper_${{ env.RUNTIME_ID }}_v${{ env.VERSION }}.exe"
+          Copy-Item "publish/$env:RUNTIME_ID/HotkeyTyper.exe" $exeName
+          echo "exe_name=$exeName" >> $env:GITHUB_OUTPUT
+
       - name: Create zip artifact (${{ matrix.rid }})
         id: zip
         run: |
@@ -67,11 +74,18 @@ jobs:
           Compress-Archive -Path publish/$env:RUNTIME_ID/* -DestinationPath $zipName
           echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
 
-      - name: Upload artifact (${{ matrix.rid }})
+      - name: Upload zip artifact (${{ matrix.rid }})
         uses: actions/upload-artifact@v4
         with:
-          name: HotkeyTyper-${{ env.VERSION }}-${{ env.RUNTIME_ID }}
+          name: HotkeyTyper-${{ env.VERSION }}-${{ env.RUNTIME_ID }}-zip
           path: ${{ steps.zip.outputs.zip_name }}
+          if-no-files-found: error
+
+      - name: Upload exe artifact (${{ matrix.rid }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: HotkeyTyper-${{ env.VERSION }}-${{ env.RUNTIME_ID }}-exe
+          path: ${{ steps.rename_exe.outputs.exe_name }}
           if-no-files-found: error
 
       - name: Summary append (${{ matrix.rid }})
@@ -109,7 +123,9 @@ jobs:
           name: HotkeyTyper ${{ env.VERSION }}
           draft: false
           prerelease: false
-          files: artifacts/**/*.zip
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.exe
           body: |
             Automated build for version ${{ env.VERSION }}.
 

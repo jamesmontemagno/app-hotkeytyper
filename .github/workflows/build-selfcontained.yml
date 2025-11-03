@@ -124,17 +124,37 @@ jobs:
           name: HotkeyTyper ${{ env.VERSION }}
           draft: false
           prerelease: false
+          generate_release_notes: true
           files: |
             artifacts/**/*.zip
             artifacts/**/*.exe
           body: |
-            Automated build for version ${{ env.VERSION }}.
-
-            Runtimes included:
-            - win-x64
-            - win-arm64
-
-            Build number: ${{ github.run_number }}
+            ## TL;DR
+            
+            A lightweight Windows utility that types predefined text into any application using a customizable global hotkey (default: CTRL+SHIFT+1). Perfect for demos, tutorials, and presentations.
+            
+            **Download:** Choose `win-x64` for Intel/AMD (most common) or `win-arm64` for ARM devices. Both `.zip` and standalone `.exe` versions available.
+            
+            **Quick Start:** Extract/run → Configure text → Set hotkey → Press hotkey in any app to type!
+            
+            ---
+            
+            ### 📦 Download & Installation
+            
+            - **`HotkeyTyper_win-x64_*.zip`** or **`.exe`** - For 64-bit Intel/AMD processors (most common)
+            - **`HotkeyTyper_win-arm64_*.zip`** or **`.exe`** - For ARM64 devices (Surface Pro X, etc.)
+            
+            **System Requirements:** Windows 10 or later (self-contained, no additional runtime needed)
+            
+            ---
+            
+            ### 📚 Resources
+            
+            - [Full Documentation](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md)
+            - [Keyboard Configuration Guide](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md#configuring-the-hotkey)
+            - [Typing Source Code & Special Characters](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md#typing-source-code--special-characters)
+            
+            **Build Info:** Version ${{ env.VERSION }} | Build ${{ github.run_number }} | Runtimes: win-x64, win-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

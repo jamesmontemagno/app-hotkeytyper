@@ -158,7 +158,7 @@ internal static class AppColors
     /// <summary>
     /// Track bar tick color (enabled).
     /// </summary>
-    public static Color TrackBarTick { get; } = Color.Black;
+    public static Color TrackBarTick => IsDarkMode ? Color.White : Color.Black;
 
     /// <summary>
     /// Track bar tick color (disabled/grayed).

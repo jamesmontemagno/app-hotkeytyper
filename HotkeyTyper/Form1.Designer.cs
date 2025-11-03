@@ -23,13 +23,18 @@ partial class Form1
     {
         // 1. Instantiate controls first
         MenuStrip menuStrip = new MenuStrip();
-        ToolStripMenuItem mnuHelp = new ToolStripMenuItem();
-        ToolStripMenuItem mnuCheckForUpdates = new ToolStripMenuItem();
-        ToolStripMenuItem mnuAbout = new ToolStripMenuItem();
+        ToolStripMenuItem mnuFile = new ToolStripMenuItem();
+        ToolStripMenuItem mnuSaveSnippet = new ToolStripMenuItem();
+        ToolStripMenuItem mnuMinimizeToTray = new ToolStripMenuItem();
+        ToolStripMenuItem mnuSettings = new ToolStripMenuItem();
+        ToolStripMenuItem mnuConfigureHotkey = new ToolStripMenuItem();
         ToolStripMenuItem mnuTheme = new ToolStripMenuItem();
         mnuThemeSystem = new ToolStripMenuItem();
         mnuThemeLight = new ToolStripMenuItem();
         mnuThemeDark = new ToolStripMenuItem();
+        ToolStripMenuItem mnuHelp = new ToolStripMenuItem();
+        ToolStripMenuItem mnuCheckForUpdates = new ToolStripMenuItem();
+        ToolStripMenuItem mnuAbout = new ToolStripMenuItem();
         TableLayoutPanel mainLayout = new TableLayoutPanel();
         Label lblInstructions = new Label();
         TableLayoutPanel snippetSection = new TableLayoutPanel();
@@ -77,18 +82,32 @@ partial class Form1
         menuStrip.Size = new Size(520, 24);
         menuStrip.TabIndex = 0;
 
-        // Configure menu items
-        mnuHelp.Name = "mnuHelp";
-        mnuHelp.Text = "&Help";
-        mnuHelp.DropDownItems.Add(mnuCheckForUpdates);
-        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
-        mnuHelp.DropDownItems.Add(mnuTheme);
-        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
-        mnuHelp.DropDownItems.Add(mnuAbout);
+        // Configure File menu
+        mnuFile.Name = "mnuFile";
+        mnuFile.Text = "&File";
+        mnuFile.DropDownItems.Add(mnuSaveSnippet);
+        mnuFile.DropDownItems.Add(new ToolStripSeparator());
+        mnuFile.DropDownItems.Add(mnuMinimizeToTray);
 
-        mnuCheckForUpdates.Name = "mnuCheckForUpdates";
-        mnuCheckForUpdates.Text = "Check for &Updates...";
-        mnuCheckForUpdates.Click += MnuCheckForUpdates_Click;
+        mnuSaveSnippet.Name = "mnuSaveSnippet";
+        mnuSaveSnippet.Text = "&Save Snippet";
+        mnuSaveSnippet.ShortcutKeys = Keys.Control | Keys.S;
+        mnuSaveSnippet.Click += BtnUpdate_Click;
+
+        mnuMinimizeToTray.Name = "mnuMinimizeToTray";
+        mnuMinimizeToTray.Text = "&Minimize to Tray";
+        mnuMinimizeToTray.Click += BtnMinimize_Click;
+
+        // Configure Settings menu
+        mnuSettings.Name = "mnuSettings";
+        mnuSettings.Text = "&Settings";
+        mnuSettings.DropDownItems.Add(mnuConfigureHotkey);
+        mnuSettings.DropDownItems.Add(new ToolStripSeparator());
+        mnuSettings.DropDownItems.Add(mnuTheme);
+
+        mnuConfigureHotkey.Name = "mnuConfigureHotkey";
+        mnuConfigureHotkey.Text = "Configure &Hotkey...";
+        mnuConfigureHotkey.Click += MnuConfigureHotkey_Click;
 
         mnuTheme.Name = "mnuTheme";
         mnuTheme.Text = "&Theme";
@@ -108,10 +127,23 @@ partial class Form1
         mnuThemeDark.Text = "&Dark";
         mnuThemeDark.Click += MnuThemeDark_Click;
 
+        // Configure Help menu
+        mnuHelp.Name = "mnuHelp";
+        mnuHelp.Text = "&Help";
+        mnuHelp.DropDownItems.Add(mnuCheckForUpdates);
+        mnuHelp.DropDownItems.Add(new ToolStripSeparator());
+        mnuHelp.DropDownItems.Add(mnuAbout);
+
+        mnuCheckForUpdates.Name = "mnuCheckForUpdates";
+        mnuCheckForUpdates.Text = "Check for &Updates...";
+        mnuCheckForUpdates.Click += MnuCheckForUpdates_Click;
+
         mnuAbout.Name = "mnuAbout";
         mnuAbout.Text = "&About...";
         mnuAbout.Click += MnuAbout_Click;
 
+        menuStrip.Items.Add(mnuFile);
+        menuStrip.Items.Add(mnuSettings);
         menuStrip.Items.Add(mnuHelp);
 
         // Configure main layout
@@ -124,11 +156,11 @@ partial class Form1
         mainLayout.RowCount = 8;
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 80F));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.Size = new Size(520, 616);
         mainLayout.TabIndex = 1;

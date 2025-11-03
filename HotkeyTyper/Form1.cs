@@ -8,8 +8,13 @@ public partial class Form1 : Form
     // Windows API constants for hotkey registration
     private const int MOD_CONTROL = 0x0002;
     private const int MOD_SHIFT = 0x0004;
+    private const int MOD_ALT = 0x0001;
+    private const int MOD_WIN = 0x0008;
     private const int WM_HOTKEY = 0x0312;
     private const int HOTKEY_ID = 1;
+
+    // Default hotkey configuration
+    private const string DefaultHotkeyString = "Ctrl+Shift+1";
 
     // Snippet constants
     private const string DefaultSnippetId = "default";
@@ -40,6 +45,12 @@ public partial class Form1 : Form
     private string? activeSnippetId;
     private int nextSnippetNumber = 1; // Tracks next snippet number for unique naming
     private bool isLoadingUI = false; // Prevents saving during UI initialization
+
+    // Hotkey configuration
+    private string currentHotkeyString = DefaultHotkeyString;
+    private int currentModifiers = MOD_CONTROL | MOD_SHIFT;
+    private Keys currentKey = Keys.D1;
+    private string? workingHotkeyString; // Last successfully registered hotkey for rollback
 
     // Reliability heuristics for high-speed typing
     private const int MinFastDelayMs = 35; // Minimum delay enforced when speed >= 8
@@ -99,7 +110,7 @@ public partial class Form1 : Form
         // Set initial status color and text
         if (lblStatus != null)
         {
-            lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
+            lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
 
@@ -217,6 +228,7 @@ public partial class Form1 : Form
         {
             txtPredefinedText.Enabled = !fileSourceMode;
         }
+
         UpdateTooltips();
 
         isLoadingUI = false;
@@ -245,6 +257,17 @@ public partial class Form1 : Form
                     if (!string.IsNullOrWhiteSpace(settings.FileSourcePath))
                     {
                         fileSourcePath = settings.FileSourcePath;
+                    }
+
+                    // Load hotkey configuration
+                    if (!string.IsNullOrWhiteSpace(settings.Hotkey))
+                    {
+                        if (TryParseHotkey(settings.Hotkey, out int mods, out Keys key))
+                        {
+                            currentHotkeyString = settings.Hotkey;
+                            currentModifiers = mods;
+                            currentKey = key;
+                        }
                     }
 
                     // Migration: Convert old single PredefinedText to snippet if no snippets exist
@@ -344,7 +367,8 @@ public partial class Form1 : Form
                 UseFileSource = fileSourceMode,
                 FileSourcePath = fileSourcePath,
                 Snippets = snippets,
-                ActiveSnippetId = activeSnippetId
+                ActiveSnippetId = activeSnippetId,
+                Hotkey = currentHotkeyString
             };
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsFilePath, json);
@@ -373,7 +397,7 @@ public partial class Form1 : Form
         }
         trayIcon = new NotifyIcon()
         {
-            Text = "Hotkey Typer - CTRL+SHIFT+1 Active",
+            Text = $"Hotkey Typer - {currentHotkeyString} Active",
             Visible = true,
             Icon = appIcon ?? SystemIcons.Application
         };
@@ -552,7 +576,7 @@ public partial class Form1 : Form
             }
             if (lblStatus != null)
             {
-                lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
+                lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
                 lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
         }
@@ -1154,6 +1178,117 @@ public partial class Form1 : Form
         SaveSettings();
     }
 
+    // Hotkey management methods
+
+    /// <summary>
+    /// Tries to parse a hotkey string (e.g. "Ctrl+Shift+A") into modifier flags and a key code.
+    /// Returns true if parsing succeeds and the combination is valid.
+    /// </summary>
+    private bool TryParseHotkey(string hotkeyString, out int modifiers, out Keys key)
+    {
+        modifiers = 0;
+        key = Keys.None;
+
+        if (string.IsNullOrWhiteSpace(hotkeyString))
+            return false;
+
+        string[] parts = hotkeyString.Split('+');
+        if (parts.Length < 2) // Must have at least one modifier and a key
+            return false;
+
+        Keys? primaryKey = null;
+        foreach (string part in parts)
+        {
+            string p = part.Trim();
+            if (string.Equals(p, "Ctrl", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(p, "Control", StringComparison.OrdinalIgnoreCase))
+            {
+                modifiers |= MOD_CONTROL;
+            }
+            else if (string.Equals(p, "Shift", StringComparison.OrdinalIgnoreCase))
+            {
+                modifiers |= MOD_SHIFT;
+            }
+            else if (string.Equals(p, "Alt", StringComparison.OrdinalIgnoreCase))
+            {
+                modifiers |= MOD_ALT;
+            }
+            else if (string.Equals(p, "Win", StringComparison.OrdinalIgnoreCase) || 
+                     string.Equals(p, "Windows", StringComparison.OrdinalIgnoreCase))
+            {
+                modifiers |= MOD_WIN;
+            }
+            else
+            {
+                // Try to parse as a key
+                if (Enum.TryParse<Keys>(p, true, out Keys parsedKey))
+                {
+                    if (primaryKey == null)
+                    {
+                        primaryKey = parsedKey;
+                    }
+                    else
+                    {
+                        // Multiple primary keys not allowed
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        // Must have at least one modifier and exactly one primary key
+        if (modifiers == 0 || primaryKey == null || primaryKey == Keys.None)
+            return false;
+
+        key = primaryKey.Value;
+        return true;
+    }
+
+    /// <summary>
+    /// Formats modifier flags and a key into a human-readable string (e.g. "Ctrl+Shift+A").
+    /// </summary>
+    private string FormatHotkey(int modifiers, Keys key)
+    {
+        List<string> parts = new();
+        
+        if ((modifiers & MOD_CONTROL) != 0)
+            parts.Add("Ctrl");
+        if ((modifiers & MOD_SHIFT) != 0)
+            parts.Add("Shift");
+        if ((modifiers & MOD_ALT) != 0)
+            parts.Add("Alt");
+        if ((modifiers & MOD_WIN) != 0)
+            parts.Add("Win");
+        
+        parts.Add(key.ToString());
+        
+        return string.Join("+", parts);
+    }
+
+    /// <summary>
+    /// Validates that a hotkey combination is acceptable.
+    /// Returns error message if invalid, or null if valid.
+    /// </summary>
+    private string? ValidateHotkey(int modifiers, Keys key)
+    {
+        if (modifiers == 0)
+            return "At least one modifier key (Ctrl, Shift, Alt, Win) is required.";
+        
+        if (key == Keys.None)
+            return "A primary key is required.";
+
+        // Disallow modifier-only keys as primary
+        if (key == Keys.ControlKey || key == Keys.ShiftKey || key == Keys.Menu || 
+            key == Keys.LWin || key == Keys.RWin)
+            return "Cannot use a modifier key as the primary key.";
+
+        return null;
+    }
+
     /// <summary>
     /// Ensures the global hotkey is (re)registered whenever the form's native handle is created.
     /// This fixes a bug where minimizing to tray (setting ShowInTaskbar = false) can recreate the
@@ -1165,8 +1300,24 @@ public partial class Form1 : Form
         TryRegisterGlobalHotkey();
     }
 
+    // Hotkey configuration menu handler
+
+    private void MnuConfigureHotkey_Click(object? sender, EventArgs e)
+    {
+        var result = HotkeyConfigDialog.Show(this, currentHotkeyString, out string? newHotkey, out int mods, out Keys key);
+        
+        if (result == DialogResult.OK && newHotkey != null)
+        {
+            if (TryApplyHotkey(newHotkey, mods, key))
+            {
+                // Success - hotkey applied and saved
+            }
+            // If failed, TryApplyHotkey already showed error and reverted
+        }
+    }
+
     /// <summary>
-    /// Attempt to register CTRL+SHIFT+1 as a global hotkey. If the hotkey is already registered
+    /// Attempt to register the configured global hotkey. If the hotkey is already registered
     /// (stale from a previous handle) we first try to unregister. Any failure is surfaced in the
     /// status label and via a tray balloon tip for visibility.
     /// </summary>
@@ -1175,23 +1326,107 @@ public partial class Form1 : Form
         // Best-effort: in case a previous registration existed for a prior handle instance.
         UnregisterHotKey(this.Handle, HOTKEY_ID);
 
-        if (!RegisterHotKey(this.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, (int)Keys.D1))
+        if (!RegisterHotKey(this.Handle, HOTKEY_ID, currentModifiers, (int)currentKey))
         {
             if (lblStatus != null)
             {
-                lblStatus.Text = "Status: Failed to register global hotkey";
+                lblStatus.Text = $"Status: Failed to register global hotkey {currentHotkeyString}";
                 lblStatus.ForeColor = GetStatusColor(StatusType.Error);
             }
-            trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", "Failed to register global hotkey CTRL+SHIFT+1. It may be in use by another application.", ToolTipIcon.Error);
+            trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", 
+                $"Failed to register global hotkey {currentHotkeyString}. It may be in use by another application.", 
+                ToolTipIcon.Error);
         }
         else
         {
+            // Registration succeeded - remember this as working hotkey
+            workingHotkeyString = currentHotkeyString;
+            
             if (lblStatus != null && lblStatus.Text.StartsWith("Status: Failed", StringComparison.OrdinalIgnoreCase))
             {
-                lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
+                lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
                 lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
+            
+            // Update tray tooltip
+            if (trayIcon != null)
+            {
+                trayIcon.Text = $"Hotkey Typer - {currentHotkeyString} Active";
+            }
         }
+    }
+
+    /// <summary>
+    /// Attempts to apply a new hotkey configuration. If registration fails, reverts to the
+    /// previous working hotkey. Returns true if the new hotkey was successfully registered.
+    /// </summary>
+    private bool TryApplyHotkey(string hotkeyString, int modifiers, Keys key)
+    {
+        // Validate first
+        string? validationError = ValidateHotkey(modifiers, key);
+        if (validationError != null)
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = $"Status: {validationError}";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Error);
+            }
+            return false;
+        }
+
+        // Save previous values for rollback
+        string previousHotkeyString = currentHotkeyString;
+        int previousModifiers = currentModifiers;
+        Keys previousKey = currentKey;
+
+        // Update to new values
+        currentHotkeyString = hotkeyString;
+        currentModifiers = modifiers;
+        currentKey = key;
+
+        // Unregister old hotkey
+        UnregisterHotKey(this.Handle, HOTKEY_ID);
+
+        // Try to register new hotkey
+        if (!RegisterHotKey(this.Handle, HOTKEY_ID, currentModifiers, (int)currentKey))
+        {
+            // Registration failed - rollback
+            currentHotkeyString = previousHotkeyString;
+            currentModifiers = previousModifiers;
+            currentKey = previousKey;
+
+            // Re-register previous hotkey
+            RegisterHotKey(this.Handle, HOTKEY_ID, currentModifiers, (int)currentKey);
+
+            if (lblStatus != null)
+            {
+                lblStatus.Text = $"Status: Failed to register {hotkeyString}. Reverted to {currentHotkeyString}.";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Error);
+            }
+            
+            trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", 
+                $"Failed to register {hotkeyString}. It may be in use by another application. Keeping {currentHotkeyString}.", 
+                ToolTipIcon.Warning);
+            
+            return false;
+        }
+
+        // Success - update UI and save
+        workingHotkeyString = currentHotkeyString;
+        
+        if (lblStatus != null)
+        {
+            lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
+            lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+        }
+
+        if (trayIcon != null)
+        {
+            trayIcon.Text = $"Hotkey Typer - {currentHotkeyString} Active";
+        }
+
+        SaveSettings();
+        return true;
     }
 }
 
@@ -1208,6 +1443,9 @@ public class AppSettings
     // New snippet-based system
     public List<TextSnippet>? Snippets { get; set; }
     public string? ActiveSnippetId { get; set; }
+
+    // Configurable global hotkey
+    public string Hotkey { get; set; } = "Ctrl+Shift+1";
 }
 
 // Represents a single text snippet

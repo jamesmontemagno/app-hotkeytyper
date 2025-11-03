@@ -15,9 +15,11 @@ internal class UpdateDialog : Form
     {
         markdownContent = changelog ?? string.Empty;
         InitializeDialog(latestVersion);
+        // Load event will handle async WebView2 initialization
+        this.Load += async (s, e) => await InitializeWebViewAsync();
     }
 
-    private async void InitializeDialog(string latestVersion)
+    private void InitializeDialog(string latestVersion)
     {
         Text = "Update Available";
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -99,9 +101,6 @@ internal class UpdateDialog : Form
         Controls.AddRange(new Control[] { lblTitle, lblPrompt, lblChangelogTitle, webViewChangelog, btnYes, btnNo });
         AcceptButton = btnYes;
         CancelButton = btnNo;
-
-        // Initialize WebView2 and load Markdown content
-        await InitializeWebViewAsync();
     }
 
     private async Task InitializeWebViewAsync()
@@ -121,11 +120,24 @@ internal class UpdateDialog : Form
         }
         catch (Exception ex)
         {
-            // Fallback: Show error message in WebView if initialization fails
-            if (webViewChangelog?.CoreWebView2 != null)
+            // Fallback: Replace WebView2 with a TextBox showing the error and raw content
+            if (webViewChangelog != null)
             {
-                var errorHtml = $"<html><body style='font-family: Segoe UI; padding: 10px;'><p style='color: red;'>Failed to render release notes: {ex.Message}</p><pre>{markdownContent}</pre></body></html>";
-                webViewChangelog.NavigateToString(errorHtml);
+                var fallbackTextBox = new TextBox
+                {
+                    Text = $"Failed to render release notes: {ex.Message}\n\n{markdownContent}",
+                    Location = webViewChangelog.Location,
+                    Size = webViewChangelog.Size,
+                    Multiline = true,
+                    ReadOnly = true,
+                    ScrollBars = ScrollBars.Vertical,
+                    Font = new Font("Segoe UI", 9F),
+                    BackColor = AppColors.InputBackground,
+                    ForeColor = AppColors.InputText,
+                    Anchor = webViewChangelog.Anchor
+                };
+                Controls.Remove(webViewChangelog);
+                Controls.Add(fallbackTextBox);
             }
         }
     }

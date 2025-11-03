@@ -129,65 +129,32 @@ jobs:
             artifacts/**/*.zip
             artifacts/**/*.exe
           body: |
-            ## 🚀 Hotkey Typer - Type Predefined Text with a Global Hotkey
+            ## TL;DR
             
-            A lightweight Windows utility that types predefined text into any application using a customizable global hotkey (default: CTRL+SHIFT+1). Perfect for demos, tutorials, presentations, and workflows requiring quick text reproduction.
-
-            ### ✨ Key Features
+            A lightweight Windows utility that types predefined text into any application using a customizable global hotkey (default: CTRL+SHIFT+1). Perfect for demos, tutorials, and presentations.
             
-            - **Global Hotkey Support**: Works across all applications with customizable key combinations
-            - **Human-like Typing**: Configurable typing speed with natural randomized delays
-            - **Multiple Source Modes**: 
-              - Type from predefined text snippets
-              - Load text from external files
-              - Special handling for code with syntax characters
-            - **System Tray Integration**: Runs quietly in the background
-            - **Theme-Aware**: Automatically adapts to Windows light/dark mode
-            - **Unicode Support**: Types any character including special symbols and international text
+            **Download:** Choose `win-x64` for Intel/AMD (most common) or `win-arm64` for ARM devices. Both `.zip` and standalone `.exe` versions available.
             
-            ### 📦 Download & Installation
-            
-            **Choose the right version for your system:**
-            
-            - **`HotkeyTyper_win-x64_*.zip`** - For 64-bit Intel/AMD processors (most common)
-            - **`HotkeyTyper_win-arm64_*.zip`** - For ARM64 devices (Surface Pro X, etc.)
-            
-            **Standalone executables** (no installation required):
-            - **`HotkeyTyper_win-x64_*.exe`** - Direct download for 64-bit systems
-            - **`HotkeyTyper_win-arm64_*.exe`** - Direct download for ARM64 systems
-            
-            **To use:**
-            1. Download the appropriate `.zip` file or `.exe` for your system
-            2. Extract the zip (if applicable) or run the `.exe` directly
-            3. Run `HotkeyTyper.exe` - no installation needed!
-            4. Configure your text and hotkey
-            5. Press your hotkey in any application to type your text
-            
-            ### 💻 System Requirements
-            
-            - Windows 10 or later
-            - .NET 10 Runtime (included in self-contained builds - no separate installation needed)
-            
-            ### 📖 Quick Start
-            
-            1. **Set Your Text**: Enter or paste text in the main window (or choose a file)
-            2. **Configure Hotkey** (optional): Click the hotkey field and press your desired key combination
-            3. **Adjust Speed**: Use the slider to control typing speed (1-10)
-            4. **Save Settings**: Click "Save" to persist your configuration
-            5. **Use It**: Switch to any application and press your hotkey!
-            
-            ### 📚 Documentation
-            
-            - [Full README](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md)
-            - [Keyboard Configuration Guide](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md#configuring-the-hotkey)
-            - [Typing Source Code & Special Characters](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md#typing-source-code--special-characters)
+            **Quick Start:** Extract/run → Configure text → Set hotkey → Press hotkey in any app to type!
             
             ---
             
-            **Build Information:**
-            - Version: ${{ env.VERSION }}
-            - Build Number: ${{ github.run_number }}
-            - Runtimes: win-x64, win-arm64
+            ### 📦 Download & Installation
+            
+            - **`HotkeyTyper_win-x64_*.zip`** or **`.exe`** - For 64-bit Intel/AMD processors (most common)
+            - **`HotkeyTyper_win-arm64_*.zip`** or **`.exe`** - For ARM64 devices (Surface Pro X, etc.)
+            
+            **System Requirements:** Windows 10 or later (self-contained, no additional runtime needed)
+            
+            ---
+            
+            ### 📚 Resources
+            
+            - [Full Documentation](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md)
+            - [Keyboard Configuration Guide](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md#configuring-the-hotkey)
+            - [Typing Source Code & Special Characters](https://github.com/jamesmontemagno/app-hotkeytyper/blob/main/README.md#typing-source-code--special-characters)
+            
+            **Build Info:** Version ${{ env.VERSION }} | Build ${{ github.run_number }} | Runtimes: win-x64, win-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

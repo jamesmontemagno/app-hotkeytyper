@@ -82,4 +82,24 @@ The app now automatically escapes these characters for you. You can paste or typ
 
 If you notice any character that still fails to type correctly, open an issue with the exact snippet.
 
+## For Developers
+
+### Theme-Aware Message Boxes
+
+The application uses a custom `ThemedMessageBox` class instead of the built-in `MessageBox` to respect the system dark mode theme. 
+
+**Important:** Always use `ThemedMessageBox.Show()` instead of `MessageBox.Show()` when displaying message boxes throughout the application. This ensures consistent theming and a better user experience in both light and dark modes.
+
+Usage:
+```csharp
+// Simple message
+ThemedMessageBox.Show("Message text", "Title");
+
+// With icon and buttons
+ThemedMessageBox.Show("Delete this item?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+// With owner window
+ThemedMessageBox.Show(this, "Update available!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+```
+
 See `blogs/announce-hotkeytyper.md` for a longer announcement and implementation notes.

@@ -315,7 +315,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error loading settings: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show($"Error loading settings: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             InitializeDefaultSnippet();
         }
     }
@@ -375,7 +375,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error saving settings: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ThemedMessageBox.Show($"Error saving settings: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -563,7 +563,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error typing text: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ThemedMessageBox.Show($"Error typing text: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
@@ -737,7 +737,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error reading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ThemedMessageBox.Show($"Error reading file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return null;
         }
     }
@@ -920,8 +920,8 @@ public partial class Form1 : Form
                 lblStatus.ForeColor = GetStatusColor(StatusType.Success);
             }
 
-            // Show simple message for "no updates" - MessageBox is fine here
-            MessageBox.Show(this,
+            // Show simple message for "no updates"
+            ThemedMessageBox.Show(this,
     "You're running the latest version of Hotkey Typer.",
           "No Updates",
  MessageBoxButtons.OK,
@@ -973,7 +973,7 @@ public partial class Form1 : Form
                 lblStatus.Text = "Update failed";
                 lblStatus.ForeColor = GetStatusColor(StatusType.Error);
             }
-            MessageBox.Show("Failed to download or install the update. Please try again later.",
+            ThemedMessageBox.Show("Failed to download or install the update. Please try again later.",
                 "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         // If successful, app will restart automatically
@@ -1026,7 +1026,7 @@ public partial class Form1 : Form
             lblStatus.ForeColor = GetStatusColor(StatusType.Success);
         }
 
-        MessageBox.Show(
+        ThemedMessageBox.Show(
             $"Theme changed to {themeName}.\n\nPlease restart the application for the changes to take effect.",
             "Theme Changed",
             MessageBoxButtons.OK,
@@ -1080,13 +1080,13 @@ public partial class Form1 : Form
         name = name.Trim();
         if (string.IsNullOrEmpty(name))
         {
-            MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
         {
-            MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -1113,13 +1113,13 @@ public partial class Form1 : Form
         name = name.Trim();
         if (string.IsNullOrEmpty(name))
         {
-            MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         if (snippets.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
         {
-            MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -1145,13 +1145,13 @@ public partial class Form1 : Form
         newName = newName.Trim();
         if (string.IsNullOrEmpty(newName))
         {
-            MessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("Snippet name cannot be empty.", "Invalid Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         if (snippets.Any(s => s.Id != current.Id && string.Equals(s.Name, newName, StringComparison.OrdinalIgnoreCase)))
         {
-            MessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("A snippet with this name already exists.", "Duplicate Name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -1163,14 +1163,14 @@ public partial class Form1 : Form
     {
         if (snippets.Count <= 1)
         {
-            MessageBox.Show("Cannot delete the last remaining snippet.", "Delete Not Allowed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            ThemedMessageBox.Show("Cannot delete the last remaining snippet.", "Delete Not Allowed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         var current = GetActiveSnippet();
         if (current == null) return;
 
-        var result = MessageBox.Show($"Delete snippet '{current.Name}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        var result = ThemedMessageBox.Show($"Delete snippet '{current.Name}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         if (result != DialogResult.Yes) return;
 
         snippets.Remove(current);

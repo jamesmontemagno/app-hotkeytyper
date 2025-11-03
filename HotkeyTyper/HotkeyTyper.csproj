@@ -7,6 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationIcon>HotkeyTyper.ico</ApplicationIcon>
     <!-- Version properties are set by build workflow -->
     <!-- Default to dev build versions when building locally -->
     <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>

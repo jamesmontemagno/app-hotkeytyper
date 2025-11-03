@@ -20,12 +20,17 @@ internal class InputDialog : Form
         MinimizeBox = false;
         ClientSize = new Size(350, 120);
         
+        // Apply dark mode colors
+        BackColor = AppColors.Background;
+        ForeColor = AppColors.Text;
+        
         var lblPrompt = new Label
         {
             Text = prompt,
             Location = new Point(15, 15),
             Size = new Size(320, 20),
-            Font = new Font("Segoe UI", 9F)
+            Font = new Font("Segoe UI", 9F),
+            ForeColor = AppColors.Text
         };
         
         txtInput = new TextBox
@@ -33,7 +38,10 @@ internal class InputDialog : Form
             Text = defaultValue,
             Location = new Point(15, 45),
             Size = new Size(320, 23),
-            Font = new Font("Segoe UI", 9F)
+            Font = new Font("Segoe UI", 9F),
+            BackColor = AppColors.InputBackground,
+            ForeColor = AppColors.InputText,
+            BorderStyle = AppColors.IsDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D
         };
         
         btnOK = new Button
@@ -42,7 +50,8 @@ internal class InputDialog : Form
             DialogResult = DialogResult.OK,
             Location = new Point(175, 80),
             Size = new Size(75, 25),
-            Font = new Font("Segoe UI", 9F)
+            Font = new Font("Segoe UI", 9F),
+            FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
         
         btnCancel = new Button
@@ -51,8 +60,20 @@ internal class InputDialog : Form
             DialogResult = DialogResult.Cancel,
             Location = new Point(260, 80),
             Size = new Size(75, 25),
-            Font = new Font("Segoe UI", 9F)
+            Font = new Font("Segoe UI", 9F),
+            FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
+        
+        if (AppColors.IsDarkMode)
+        {
+            btnOK.BackColor = AppColors.Accent;
+            btnOK.ForeColor = AppColors.AccentText;
+            btnOK.FlatAppearance.BorderColor = AppColors.AccentDark;
+            
+            btnCancel.BackColor = AppColors.ButtonBackground;
+            btnCancel.ForeColor = AppColors.Text;
+            btnCancel.FlatAppearance.BorderColor = AppColors.Border;
+        }
         
         Controls.AddRange(new Control[] { lblPrompt, txtInput, btnOK, btnCancel });
         AcceptButton = btnOK;

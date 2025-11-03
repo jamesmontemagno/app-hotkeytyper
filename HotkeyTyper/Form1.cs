@@ -229,12 +229,6 @@ public partial class Form1 : Form
             txtPredefinedText.Enabled = !fileSourceMode;
         }
 
-        // Update hotkey display
-        if (txtHotkey != null)
-        {
-            txtHotkey.Text = currentHotkeyString;
-        }
-
         UpdateTooltips();
 
         isLoadingUI = false;
@@ -1306,74 +1300,19 @@ public partial class Form1 : Form
         TryRegisterGlobalHotkey();
     }
 
-    // Hotkey UI event handlers
+    // Hotkey configuration menu handler
 
-    private void TxtHotkey_KeyDown(object? sender, KeyEventArgs e)
+    private void MnuConfigureHotkey_Click(object? sender, EventArgs e)
     {
-        // Suppress regular key handling
-        e.SuppressKeyPress = true;
-        e.Handled = true;
-
-        // Ignore modifier-only presses
-        if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey || 
-            e.KeyCode == Keys.Menu || e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
-        {
-            return;
-        }
-
-        // Build modifier flags
-        int mods = 0;
-        if (e.Control) mods |= MOD_CONTROL;
-        if (e.Shift) mods |= MOD_SHIFT;
-        if (e.Alt) mods |= MOD_ALT;
+        var result = HotkeyConfigDialog.Show(this, currentHotkeyString, out string? newHotkey, out int mods, out Keys key);
         
-        // Note: Windows key combinations are typically not capturable via KeyDown in WinForms
-        // because the OS handles them at a lower level. We support Win key in parsing for
-        // users who manually edit settings.json, but cannot capture it via UI.
-
-        Keys key = e.KeyCode;
-
-        // Format and try to apply
-        string hotkeyString = FormatHotkey(mods, key);
-        
-        if (TryApplyHotkey(hotkeyString, mods, key))
+        if (result == DialogResult.OK && newHotkey != null)
         {
-            if (txtHotkey != null)
+            if (TryApplyHotkey(newHotkey, mods, key))
             {
-                txtHotkey.Text = hotkeyString;
+                // Success - hotkey applied and saved
             }
-        }
-    }
-
-    private void BtnClearHotkey_Click(object? sender, EventArgs e)
-    {
-        // Note: Clearing doesn't unregister the hotkey - it remains active.
-        // This is intentional to avoid accidentally disabling the app's core functionality.
-        // Users can press a new combination or use Restore Default to change it.
-        
-        if (txtHotkey != null)
-        {
-            txtHotkey.Text = string.Empty;
-        }
-
-        if (lblStatus != null)
-        {
-            lblStatus.Text = "Status: Press a key combination in the Hotkey field to set a new hotkey";
-            lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
-        }
-    }
-
-    private void BtnRestoreDefaultHotkey_Click(object? sender, EventArgs e)
-    {
-        if (TryParseHotkey(DefaultHotkeyString, out int mods, out Keys key))
-        {
-            if (TryApplyHotkey(DefaultHotkeyString, mods, key))
-            {
-                if (txtHotkey != null)
-                {
-                    txtHotkey.Text = DefaultHotkeyString;
-                }
-            }
+            // If failed, TryApplyHotkey already showed error and reverted
         }
     }
 

@@ -43,7 +43,7 @@ internal class AboutDialog : Form
 
         Label lblDescription = new Label
         {
-            Text = "A simple utility to type predefined text snippets\nusing a global hotkey (CTRL+SHIFT+1).",
+            Text = "A simple utility to type predefined text snippets\nusing a configurable global hotkey.",
             Location = new Point(20, 85),
             Size = new Size(360, 40),
             Font = new Font("Segoe UI", 9F),
@@ -52,7 +52,7 @@ internal class AboutDialog : Form
 
         Label lblCopyright = new Label
         {
-            Text = $"© {DateTime.Now.Year} James Montemagno",
+            Text = $"ï¿½ {DateTime.Now.Year} James Montemagno",
             Location = new Point(20, 130),
             Size = new Size(360, 20),
             Font = new Font("Segoe UI", 9F),

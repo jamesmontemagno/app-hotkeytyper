@@ -35,10 +35,10 @@ public class HotkeyParsingTests
     }
 
     [Fact]
-    public void AppSettings_DefaultHotkey_IsCtrlShiftOne()
+    public void AppSettings_DefaultHotkey_IsNull()
     {
         var settings = new AppSettings();
-        Assert.Equal("Ctrl+Shift+1", settings.Hotkey);
+        Assert.Null(settings.Hotkey);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class HotkeyParsingTests
     }
 
     [Fact]
-    public void AppSettings_MissingHotkey_UsesDefault()
+    public void AppSettings_MissingHotkey_IsNull()
     {
         // Simulate loading old settings file without Hotkey property
         string json = @"{
@@ -75,7 +75,7 @@ public class HotkeyParsingTests
         var settings = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json);
 
         Assert.NotNull(settings);
-        // Default value should be used when property is missing
-        Assert.Equal("Ctrl+Shift+1", settings.Hotkey);
+        // Hotkey should be null when property is missing (no default)
+        Assert.Null(settings.Hotkey);
     }
 }

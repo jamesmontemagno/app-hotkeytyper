@@ -6,6 +6,42 @@ namespace HotkeyTyper.Tests;
 public class LoadSettingsIntegrationTests
 {
     [Fact]
+    public void LoadSettings_FirstRun_HotkeyIsNull()
+    {
+        // Arrange - Simulate first run with no settings file (defaults will be used)
+        var newSettings = new AppSettings();
+        
+        // Assert - Hotkey should be null on first run
+        Assert.Null(newSettings.Hotkey);
+    }
+    
+    [Fact]
+    public void LoadSettings_NoHotkeyInJson_LoadsAsNull()
+    {
+        // Arrange - Simulate loading settings without a hotkey property
+        string json = @"{
+            ""TypingSpeed"": 5,
+            ""HasCode"": false,
+            ""Snippets"": [
+                {
+                    ""Id"": ""default"",
+                    ""Name"": ""Default"",
+                    ""Content"": ""Hello"",
+                    ""LastUsed"": ""2025-01-01T00:00:00""
+                }
+            ],
+            ""ActiveSnippetId"": ""default""
+        }";
+        
+        // Act
+        var settings = JsonSerializer.Deserialize<AppSettings>(json);
+        
+        // Assert
+        Assert.NotNull(settings);
+        Assert.Null(settings.Hotkey);
+    }
+
+    [Fact]
     public void LoadSettings_Scenario_EmptyContentInSnippet()
     {
         // Arrange - Simulate the exact scenario from settings.json

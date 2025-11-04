@@ -9,7 +9,6 @@ internal class HotkeyConfigDialog : Form
     private readonly Button btnOK;
     private readonly Button btnCancel;
     private readonly Button btnClear;
-    private readonly Button btnRestoreDefault;
     private readonly Label lblInstructions;
     
     private string? capturedHotkey;
@@ -23,7 +22,6 @@ internal class HotkeyConfigDialog : Form
     private const int MOD_CONTROL = 0x0002;
     private const int MOD_SHIFT = 0x0004;
     private const int MOD_ALT = 0x0001;
-    private const string DefaultHotkey = "Ctrl+Shift+1";
     
     public HotkeyConfigDialog(string currentHotkey)
     {
@@ -61,7 +59,7 @@ internal class HotkeyConfigDialog : Form
         txtHotkey.KeyDown += TxtHotkey_KeyDown;
         
         // Initialize captured values from current hotkey
-        capturedHotkey = currentHotkey;
+        capturedHotkey = string.IsNullOrEmpty(currentHotkey) ? null : currentHotkey;
         
         btnClear = new Button
         {
@@ -72,16 +70,6 @@ internal class HotkeyConfigDialog : Form
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
         btnClear.Click += BtnClear_Click;
-        
-        btnRestoreDefault = new Button
-        {
-            Text = "Restore Default",
-            Location = new Point(110, 105),
-            Size = new Size(120, 28),
-            Font = new Font("Segoe UI", 9F),
-            FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
-        };
-        btnRestoreDefault.Click += BtnRestoreDefault_Click;
         
         btnOK = new Button
         {
@@ -116,13 +104,9 @@ internal class HotkeyConfigDialog : Form
             btnClear.BackColor = AppColors.ButtonBackground;
             btnClear.ForeColor = AppColors.Text;
             btnClear.FlatAppearance.BorderColor = AppColors.Border;
-            
-            btnRestoreDefault.BackColor = AppColors.ButtonBackground;
-            btnRestoreDefault.ForeColor = AppColors.Text;
-            btnRestoreDefault.FlatAppearance.BorderColor = AppColors.Border;
         }
         
-        Controls.AddRange(new Control[] { lblInstructions, txtHotkey, btnClear, btnRestoreDefault, btnOK, btnCancel });
+        Controls.AddRange(new Control[] { lblInstructions, txtHotkey, btnClear, btnOK, btnCancel });
         AcceptButton = btnOK;
         CancelButton = btnCancel;
     }
@@ -170,15 +154,6 @@ internal class HotkeyConfigDialog : Form
         capturedHotkey = null;
         capturedModifiers = 0;
         capturedKey = Keys.None;
-    }
-    
-    private void BtnRestoreDefault_Click(object? sender, EventArgs e)
-    {
-        txtHotkey.Text = DefaultHotkey;
-        capturedHotkey = DefaultHotkey;
-        // Parse default
-        capturedModifiers = MOD_CONTROL | MOD_SHIFT;
-        capturedKey = Keys.D1;
     }
     
     private string FormatHotkey(int modifiers, Keys key)

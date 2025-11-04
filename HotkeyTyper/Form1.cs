@@ -13,8 +13,7 @@ public partial class Form1 : Form
     private const int WM_HOTKEY = 0x0312;
     private const int HOTKEY_ID = 1;
 
-    // Default hotkey configuration
-    private const string DefaultHotkeyString = "Ctrl+Shift+1";
+    // No default hotkey - user must configure on first run
 
     // Snippet constants
     private const string DefaultSnippetId = "default";
@@ -47,9 +46,9 @@ public partial class Form1 : Form
     private bool isLoadingUI = false; // Prevents saving during UI initialization
 
     // Hotkey configuration
-    private string currentHotkeyString = DefaultHotkeyString;
-    private int currentModifiers = MOD_CONTROL | MOD_SHIFT;
-    private Keys currentKey = Keys.D1;
+    private string? currentHotkeyString = null; // null until user configures
+    private int currentModifiers = 0;
+    private Keys currentKey = Keys.None;
     private string? workingHotkeyString; // Last successfully registered hotkey for rollback
 
     // Reliability heuristics for high-speed typing
@@ -107,11 +106,25 @@ public partial class Form1 : Form
         // Update theme menu checkmarks
         UpdateThemeMenuCheckmarks();
 
+        // Prompt user to configure hotkey on first run
+        if (string.IsNullOrEmpty(currentHotkeyString))
+        {
+            PromptForHotkeyConfiguration();
+        }
+
         // Set initial status color and text
         if (lblStatus != null)
         {
-            lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
-            lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+            if (string.IsNullOrEmpty(currentHotkeyString))
+            {
+                lblStatus.Text = "Status: No hotkey configured. Go to Settings > Configure Hotkey.";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+            }
+            else
+            {
+                lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+            }
         }
 
 #if !DEBUG
@@ -397,7 +410,9 @@ public partial class Form1 : Form
         }
         trayIcon = new NotifyIcon()
         {
-            Text = $"Hotkey Typer - {currentHotkeyString} Active",
+            Text = string.IsNullOrEmpty(currentHotkeyString) 
+                ? "Hotkey Typer - No hotkey configured" 
+                : $"Hotkey Typer - {currentHotkeyString} Active",
             Visible = true,
             Icon = appIcon ?? SystemIcons.Application
         };
@@ -576,8 +591,16 @@ public partial class Form1 : Form
             }
             if (lblStatus != null)
             {
-                lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
-                lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+                if (string.IsNullOrEmpty(currentHotkeyString))
+                {
+                    lblStatus.Text = "Status: No hotkey configured";
+                    lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+                }
+                else
+                {
+                    lblStatus.Text = $"Status: Hotkey {currentHotkeyString} is active";
+                    lblStatus.ForeColor = GetStatusColor(StatusType.Success);
+                }
             }
         }
     }
@@ -1302,9 +1325,37 @@ public partial class Form1 : Form
 
     // Hotkey configuration menu handler
 
+    /// <summary>
+    /// Prompts the user to configure their hotkey for the first time.
+    /// Called when the application detects no hotkey is configured.
+    /// </summary>
+    private void PromptForHotkeyConfiguration()
+    {
+        var promptResult = ThemedMessageBox.Show(
+            "Welcome to Hotkey Typer!\n\n" +
+            "You need to configure a global hotkey to activate text typing.\n\n" +
+            "Would you like to configure your hotkey now?",
+            "Configure Hotkey",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question);
+
+        if (promptResult == DialogResult.Yes)
+        {
+            MnuConfigureHotkey_Click(null, EventArgs.Empty);
+        }
+        else
+        {
+            if (lblStatus != null)
+            {
+                lblStatus.Text = "Status: No hotkey configured. Go to Settings > Configure Hotkey.";
+                lblStatus.ForeColor = GetStatusColor(StatusType.Warning);
+            }
+        }
+    }
+
     private void MnuConfigureHotkey_Click(object? sender, EventArgs e)
     {
-        var result = HotkeyConfigDialog.Show(this, currentHotkeyString, out string? newHotkey, out int mods, out Keys key);
+        var result = HotkeyConfigDialog.Show(this, currentHotkeyString ?? string.Empty, out string? newHotkey, out int mods, out Keys key);
         
         if (result == DialogResult.OK && newHotkey != null)
         {
@@ -1325,6 +1376,13 @@ public partial class Form1 : Form
     {
         // Best-effort: in case a previous registration existed for a prior handle instance.
         UnregisterHotKey(this.Handle, HOTKEY_ID);
+
+        // Skip registration if no hotkey is configured
+        if (string.IsNullOrEmpty(currentHotkeyString) || currentKey == Keys.None)
+        {
+            // No hotkey configured - don't attempt registration
+            return;
+        }
 
         if (!RegisterHotKey(this.Handle, HOTKEY_ID, currentModifiers, (int)currentKey))
         {
@@ -1375,7 +1433,7 @@ public partial class Form1 : Form
         }
 
         // Save previous values for rollback
-        string previousHotkeyString = currentHotkeyString;
+        string? previousHotkeyString = currentHotkeyString;
         int previousModifiers = currentModifiers;
         Keys previousKey = currentKey;
 
@@ -1395,18 +1453,30 @@ public partial class Form1 : Form
             currentModifiers = previousModifiers;
             currentKey = previousKey;
 
-            // Re-register previous hotkey
-            RegisterHotKey(this.Handle, HOTKEY_ID, currentModifiers, (int)currentKey);
+            // Re-register previous hotkey only if there was one
+            if (!string.IsNullOrEmpty(previousHotkeyString) && previousKey != Keys.None)
+            {
+                RegisterHotKey(this.Handle, HOTKEY_ID, currentModifiers, (int)currentKey);
+            }
 
             if (lblStatus != null)
             {
-                lblStatus.Text = $"Status: Failed to register {hotkeyString}. Reverted to {currentHotkeyString}.";
+                if (string.IsNullOrEmpty(currentHotkeyString))
+                {
+                    lblStatus.Text = $"Status: Failed to register {hotkeyString}.";
+                }
+                else
+                {
+                    lblStatus.Text = $"Status: Failed to register {hotkeyString}. Reverted to {currentHotkeyString}.";
+                }
                 lblStatus.ForeColor = GetStatusColor(StatusType.Error);
             }
             
-            trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", 
-                $"Failed to register {hotkeyString}. It may be in use by another application. Keeping {currentHotkeyString}.", 
-                ToolTipIcon.Warning);
+            string warningMessage = string.IsNullOrEmpty(currentHotkeyString)
+                ? $"Failed to register {hotkeyString}. It may be in use by another application."
+                : $"Failed to register {hotkeyString}. It may be in use by another application. Keeping {currentHotkeyString}.";
+            
+            trayIcon?.ShowBalloonTip(3000, "Hotkey Typer", warningMessage, ToolTipIcon.Warning);
             
             return false;
         }
@@ -1444,8 +1514,8 @@ public class AppSettings
     public List<TextSnippet>? Snippets { get; set; }
     public string? ActiveSnippetId { get; set; }
 
-    // Configurable global hotkey
-    public string Hotkey { get; set; } = "Ctrl+Shift+1";
+    // Configurable global hotkey (nullable - user must configure on first run)
+    public string? Hotkey { get; set; } = null;
 }
 
 // Represents a single text snippet

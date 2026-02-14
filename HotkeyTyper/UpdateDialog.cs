@@ -26,7 +26,7 @@ internal class UpdateDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(600, 450);
+        ClientSize = new Size(640, 500);
 
         // Apply dark mode colors
         BackColor = AppColors.Background;
@@ -35,8 +35,8 @@ internal class UpdateDialog : Form
         Label lblTitle = new Label
         {
             Text = $"A new version ({latestVersion}) is available!",
-            Location = new Point(20, 20),
-            Size = new Size(560, 25),
+            Location = new Point(24, 20),
+            Size = new Size(590, 28),
             Font = new Font("Segoe UI", 11F, FontStyle.Bold),
             ForeColor = AppColors.Text
         };
@@ -44,8 +44,8 @@ internal class UpdateDialog : Form
         Label lblPrompt = new Label
         {
             Text = "Would you like to download and install it?",
-            Location = new Point(20, 50),
-            Size = new Size(560, 20),
+            Location = new Point(24, 54),
+            Size = new Size(590, 22),
             Font = new Font("Segoe UI", 9F),
             ForeColor = AppColors.TextSecondary
         };
@@ -53,8 +53,8 @@ internal class UpdateDialog : Form
         Label lblChangelogTitle = new Label
         {
             Text = "Recent Changes:",
-            Location = new Point(20, 80),
-            Size = new Size(560, 20),
+            Location = new Point(24, 86),
+            Size = new Size(590, 22),
             Font = new Font("Segoe UI", 9F, FontStyle.Bold),
             ForeColor = AppColors.TextSecondary
         };
@@ -62,8 +62,8 @@ internal class UpdateDialog : Form
         // Create WebView2 control for Markdown rendering
         webViewChangelog = new WebView2
         {
-            Location = new Point(20, 105),
-            Size = new Size(560, 290),
+            Location = new Point(24, 114),
+            Size = new Size(590, 320),
             Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
 
@@ -71,8 +71,8 @@ internal class UpdateDialog : Form
         {
             Text = "Yes, Update",
             DialogResult = DialogResult.Yes,
-            Location = new Point(420, 410),
-            Size = new Size(80, 25),
+            Location = new Point(430, 452),
+            Size = new Size(104, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -81,8 +81,8 @@ internal class UpdateDialog : Form
         {
             Text = "Not Now",
             DialogResult = DialogResult.No,
-            Location = new Point(510, 410),
-            Size = new Size(70, 25),
+            Location = new Point(544, 452),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

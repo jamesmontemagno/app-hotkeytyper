@@ -30,7 +30,7 @@ internal class HotkeyConfigDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(400, 200);
+        ClientSize = new Size(450, 230);
         
         // Apply dark mode colors
         BackColor = AppColors.Background;
@@ -39,8 +39,8 @@ internal class HotkeyConfigDialog : Form
         lblInstructions = new Label
         {
             Text = "Click in the text box below and press your desired key combination.\nAt least one modifier (Ctrl, Shift, Alt) is required.",
-            Location = new Point(20, 20),
-            Size = new Size(360, 40),
+            Location = new Point(24, 20),
+            Size = new Size(400, 42),
             Font = new Font("Segoe UI", 9F),
             ForeColor = AppColors.TextSecondary
         };
@@ -48,8 +48,8 @@ internal class HotkeyConfigDialog : Form
         txtHotkey = new TextBox
         {
             Text = currentHotkey,
-            Location = new Point(20, 70),
-            Size = new Size(360, 23),
+            Location = new Point(24, 72),
+            Size = new Size(400, 26),
             Font = new Font("Segoe UI", 10F),
             ReadOnly = true,
             BackColor = AppColors.InputBackground,
@@ -64,8 +64,8 @@ internal class HotkeyConfigDialog : Form
         btnClear = new Button
         {
             Text = "Clear",
-            Location = new Point(20, 105),
-            Size = new Size(80, 28),
+            Location = new Point(24, 112),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -75,8 +75,8 @@ internal class HotkeyConfigDialog : Form
         {
             Text = "OK",
             DialogResult = DialogResult.OK,
-            Location = new Point(230, 155),
-            Size = new Size(75, 28),
+            Location = new Point(270, 180),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -85,8 +85,8 @@ internal class HotkeyConfigDialog : Form
         {
             Text = "Cancel",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(315, 155),
-            Size = new Size(75, 28),
+            Location = new Point(360, 180),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

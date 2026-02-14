@@ -17,7 +17,7 @@ internal class AboutDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(400, 200);
+        ClientSize = new Size(440, 260);
 
         // Apply dark mode colors
         BackColor = AppColors.Background;
@@ -26,8 +26,8 @@ internal class AboutDialog : Form
         Label lblTitle = new Label
         {
             Text = "Hotkey Typer",
-            Location = new Point(20, 20),
-            Size = new Size(360, 30),
+            Location = new Point(24, 24),
+            AutoSize = true,
             Font = new Font("Segoe UI", 14F, FontStyle.Bold),
             ForeColor = AppColors.Text
         };
@@ -35,8 +35,8 @@ internal class AboutDialog : Form
         Label lblVersion = new Label
         {
             Text = $"Version {version}",
-            Location = new Point(20, 55),
-            Size = new Size(360, 20),
+            Location = new Point(24, 60),
+            AutoSize = true,
             Font = new Font("Segoe UI", 10F),
             ForeColor = AppColors.TextSecondary
         };
@@ -44,8 +44,9 @@ internal class AboutDialog : Form
         Label lblDescription = new Label
         {
             Text = "A simple utility to type predefined text snippets\nusing a configurable global hotkey.",
-            Location = new Point(20, 85),
-            Size = new Size(360, 40),
+            Location = new Point(24, 92),
+            AutoSize = true,
+            MaximumSize = new Size(390, 0),
             Font = new Font("Segoe UI", 9F),
             ForeColor = AppColors.TextSecondary
         };
@@ -53,8 +54,8 @@ internal class AboutDialog : Form
         Label lblCopyright = new Label
         {
             Text = $"� {DateTime.Now.Year} James Montemagno",
-            Location = new Point(20, 130),
-            Size = new Size(360, 20),
+            Location = new Point(24, 148),
+            AutoSize = true,
             Font = new Font("Segoe UI", 9F),
             ForeColor = AppColors.TextTertiary
         };
@@ -63,8 +64,8 @@ internal class AboutDialog : Form
         {
             Text = "OK",
             DialogResult = DialogResult.OK,
-            Location = new Point(305, 160),
-            Size = new Size(75, 25),
+            Location = new Point(332, 200),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

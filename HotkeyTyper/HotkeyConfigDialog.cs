@@ -65,7 +65,7 @@ internal class HotkeyConfigDialog : Form
         {
             Text = "Clear",
             Location = new Point(20, 105),
-            Size = new Size(80, 28),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -75,8 +75,8 @@ internal class HotkeyConfigDialog : Form
         {
             Text = "OK",
             DialogResult = DialogResult.OK,
-            Location = new Point(230, 155),
-            Size = new Size(75, 28),
+            Location = new Point(225, 155),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -85,8 +85,8 @@ internal class HotkeyConfigDialog : Form
         {
             Text = "Cancel",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(315, 155),
-            Size = new Size(75, 28),
+            Location = new Point(310, 155),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

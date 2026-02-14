@@ -48,8 +48,8 @@ internal class InputDialog : Form
         {
             Text = "OK",
             DialogResult = DialogResult.OK,
-            Location = new Point(175, 80),
-            Size = new Size(75, 25),
+            Location = new Point(170, 80),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -58,8 +58,8 @@ internal class InputDialog : Form
         {
             Text = "Cancel",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(260, 80),
-            Size = new Size(75, 25),
+            Location = new Point(255, 80),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

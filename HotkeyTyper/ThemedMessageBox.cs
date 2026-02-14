@@ -86,8 +86,8 @@ internal class ThemedMessageBox : Form
         int formWidth = Math.Max(300, messageLeft + lblMessage.Width + messagePadding);
         int messageBottom = topMargin + Math.Max(lblMessage.Height, iconSize);
         int buttonTop = messageBottom + 20;
-        int buttonHeight = 25;
-        int buttonWidth = 75;
+        int buttonHeight = 30;
+        int buttonWidth = 80;
         int buttonSpacing = 10;
         int formHeight = buttonTop + buttonHeight + 20;
 
@@ -164,7 +164,7 @@ internal class ThemedMessageBox : Form
         {
             Text = text,
             DialogResult = result,
-            Size = new Size(75, 25),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard,
             TabIndex = index

@@ -56,7 +56,6 @@ partial class Form1
         TableLayoutPanel fileSection = new TableLayoutPanel();
         txtFilePath = new TextBox();
         btnBrowseFile = new Button();
-        Panel spacer = new Panel();
         FlowLayoutPanel actionSection = new FlowLayoutPanel();
         Button btnUpdate = new Button();
         Button btnMinimize = new Button();
@@ -79,7 +78,7 @@ partial class Form1
 
         // 4. Configure MenuStrip
         menuStrip.Name = "menuStrip";
-        menuStrip.Size = new Size(520, 24);
+        menuStrip.Size = new Size(540, 24);
         menuStrip.TabIndex = 0;
 
         // Configure File menu
@@ -153,16 +152,15 @@ partial class Form1
         mainLayout.Location = new Point(0, 24);
         mainLayout.Name = "mainLayout";
         mainLayout.Padding = new Padding(10);
-        mainLayout.RowCount = 8;
+        mainLayout.RowCount = 7;
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 80F));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        mainLayout.Size = new Size(520, 616);
+        mainLayout.Size = new Size(540, 616);
         mainLayout.TabIndex = 1;
 
         // Row 0: Instructions
@@ -205,33 +203,41 @@ partial class Form1
         buttonFlow.WrapContents = true;
 
         btnNewSnippet.AutoSize = true;
+        btnNewSnippet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnNewSnippet.Font = new Font("Segoe UI", 9F);
         btnNewSnippet.Margin = new Padding(0, 0, 3, 0);
         btnNewSnippet.Name = "btnNewSnippet";
+        btnNewSnippet.Padding = new Padding(8, 4, 8, 4);
         btnNewSnippet.Text = "New";
         btnNewSnippet.Click += BtnNewSnippet_Click;
         buttonFlow.Controls.Add(btnNewSnippet);
 
         btnDuplicateSnippet.AutoSize = true;
+        btnDuplicateSnippet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnDuplicateSnippet.Font = new Font("Segoe UI", 9F);
         btnDuplicateSnippet.Margin = new Padding(0, 0, 3, 0);
         btnDuplicateSnippet.Name = "btnDuplicateSnippet";
+        btnDuplicateSnippet.Padding = new Padding(8, 4, 8, 4);
         btnDuplicateSnippet.Text = "Copy";
         btnDuplicateSnippet.Click += BtnDuplicateSnippet_Click;
         buttonFlow.Controls.Add(btnDuplicateSnippet);
 
         btnRenameSnippet.AutoSize = true;
+        btnRenameSnippet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnRenameSnippet.Font = new Font("Segoe UI", 9F);
         btnRenameSnippet.Margin = new Padding(0, 0, 3, 0);
         btnRenameSnippet.Name = "btnRenameSnippet";
+        btnRenameSnippet.Padding = new Padding(8, 4, 8, 4);
         btnRenameSnippet.Text = "Rename";
         btnRenameSnippet.Click += BtnRenameSnippet_Click;
         buttonFlow.Controls.Add(btnRenameSnippet);
 
         btnDeleteSnippet.AutoSize = true;
+        btnDeleteSnippet.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnDeleteSnippet.Font = new Font("Segoe UI", 9F);
         btnDeleteSnippet.Margin = new Padding(0);
         btnDeleteSnippet.Name = "btnDeleteSnippet";
+        btnDeleteSnippet.Padding = new Padding(8, 4, 8, 4);
         btnDeleteSnippet.Text = "Delete";
         btnDeleteSnippet.Click += BtnDeleteSnippet_Click;
         buttonFlow.Controls.Add(btnDeleteSnippet);
@@ -336,22 +342,19 @@ partial class Form1
 
         btnBrowseFile.Anchor = AnchorStyles.Left;
         btnBrowseFile.AutoSize = true;
+        btnBrowseFile.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnBrowseFile.Enabled = false;
         btnBrowseFile.Font = new Font("Segoe UI", 9F);
         btnBrowseFile.Margin = new Padding(3);
         btnBrowseFile.Name = "btnBrowseFile";
+        btnBrowseFile.Padding = new Padding(8, 4, 8, 4);
         btnBrowseFile.Text = "Browse…";
         btnBrowseFile.Click += BtnBrowseFile_Click;
         fileSection.Controls.Add(btnBrowseFile, 1, 0);
 
         mainLayout.Controls.Add(fileSection, 0, 5);
 
-        // Row 6: Spacer
-        spacer.Dock = DockStyle.Fill;
-        spacer.Margin = new Padding(0);
-        mainLayout.Controls.Add(spacer, 0, 6);
-
-        // Row 7: Action section
+        // Row 6: Action section
         actionSection.AutoSize = true;
         actionSection.Dock = DockStyle.Fill;
         actionSection.FlowDirection = FlowDirection.LeftToRight;
@@ -359,24 +362,30 @@ partial class Form1
         actionSection.WrapContents = true;
 
         btnUpdate.AutoSize = true;
+        btnUpdate.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnUpdate.Font = new Font("Segoe UI", 9F);
         btnUpdate.Margin = new Padding(0, 0, 5, 0);
+        btnUpdate.Padding = new Padding(8, 4, 8, 4);
         btnUpdate.Text = "Save";
         btnUpdate.Click += BtnUpdate_Click;
         actionSection.Controls.Add(btnUpdate);
 
         btnMinimize.AutoSize = true;
+        btnMinimize.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnMinimize.Font = new Font("Segoe UI", 9F);
         btnMinimize.Margin = new Padding(0, 0, 5, 0);
+        btnMinimize.Padding = new Padding(8, 4, 8, 4);
         btnMinimize.Text = "Minimize to Tray";
         btnMinimize.Click += BtnMinimize_Click;
         actionSection.Controls.Add(btnMinimize);
 
         btnStop.AutoSize = true;
+        btnStop.AutoSizeMode = AutoSizeMode.GrowAndShrink;
         btnStop.Enabled = false;
         btnStop.Font = new Font("Segoe UI", 9F);
         btnStop.Margin = new Padding(0, 0, 10, 0);
         btnStop.Name = "btnStop";
+        btnStop.Padding = new Padding(8, 4, 8, 4);
         btnStop.Text = "Stop Typing";
         btnStop.Click += BtnStop_Click;
         actionSection.Controls.Add(btnStop);
@@ -389,17 +398,17 @@ partial class Form1
         lblStatus.Text = "Status: Hotkey CTRL+SHIFT+1 is active";
         actionSection.Controls.Add(lblStatus);
 
-        mainLayout.Controls.Add(actionSection, 0, 7);
+        mainLayout.Controls.Add(actionSection, 0, 6);
 
         // 5. Configure Form LAST
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(520, 640);
+        ClientSize = new Size(540, 640);
         Controls.Add(mainLayout);
         Controls.Add(menuStrip);
         FormBorderStyle = FormBorderStyle.Sizable;
         MainMenuStrip = menuStrip;
         MaximizeBox = true;
-        MinimumSize = new Size(520, 640);
+        MinimumSize = new Size(540, 640);
         Name = "Form1";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "Hotkey Typer - CTRL+SHIFT+1 to Type Text";

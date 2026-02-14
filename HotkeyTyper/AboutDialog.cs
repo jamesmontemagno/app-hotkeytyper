@@ -63,8 +63,8 @@ internal class AboutDialog : Form
         {
             Text = "OK",
             DialogResult = DialogResult.OK,
-            Location = new Point(305, 160),
-            Size = new Size(75, 25),
+            Location = new Point(300, 160),
+            Size = new Size(80, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

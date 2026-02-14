@@ -71,8 +71,8 @@ internal class UpdateDialog : Form
         {
             Text = "Yes, Update",
             DialogResult = DialogResult.Yes,
-            Location = new Point(420, 410),
-            Size = new Size(80, 25),
+            Location = new Point(400, 410),
+            Size = new Size(100, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -82,7 +82,7 @@ internal class UpdateDialog : Form
             Text = "Not Now",
             DialogResult = DialogResult.No,
             Location = new Point(510, 410),
-            Size = new Size(70, 25),
+            Size = new Size(75, 30),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

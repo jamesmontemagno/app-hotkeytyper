@@ -18,7 +18,7 @@ internal class InputDialog : Form
         StartPosition = FormStartPosition.CenterParent;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(350, 120);
+        ClientSize = new Size(420, 150);
         
         // Apply dark mode colors
         BackColor = AppColors.Background;
@@ -27,8 +27,8 @@ internal class InputDialog : Form
         var lblPrompt = new Label
         {
             Text = prompt,
-            Location = new Point(15, 15),
-            Size = new Size(320, 20),
+            Location = new Point(20, 20),
+            Size = new Size(380, 22),
             Font = new Font("Segoe UI", 9F),
             ForeColor = AppColors.Text
         };
@@ -36,8 +36,8 @@ internal class InputDialog : Form
         txtInput = new TextBox
         {
             Text = defaultValue,
-            Location = new Point(15, 45),
-            Size = new Size(320, 23),
+            Location = new Point(20, 52),
+            Size = new Size(380, 26),
             Font = new Font("Segoe UI", 9F),
             BackColor = AppColors.InputBackground,
             ForeColor = AppColors.InputText,
@@ -48,8 +48,8 @@ internal class InputDialog : Form
         {
             Text = "OK",
             DialogResult = DialogResult.OK,
-            Location = new Point(170, 80),
-            Size = new Size(80, 30),
+            Location = new Point(240, 100),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };
@@ -58,8 +58,8 @@ internal class InputDialog : Form
         {
             Text = "Cancel",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(255, 80),
-            Size = new Size(80, 30),
+            Location = new Point(330, 100),
+            Size = new Size(84, 36),
             Font = new Font("Segoe UI", 9F),
             FlatStyle = AppColors.IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard
         };

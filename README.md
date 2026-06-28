@@ -2,6 +2,9 @@
 
 A tiny Windows Forms utility that types a predefined block of text into the currently focused application using a global hotkey. It's perfect for demos, tutorials, or any workflow where you need to reproduce long prompts quickly and naturally.
 
+<img width="644" height="422" alt="image" src="https://github.com/user-attachments/assets/9945b97b-60dc-46ec-bb7b-35f9fc34762b" />
+
+
 Key features:
 
 - **Configurable global hotkey** - customize to your preference (no default, you choose on first run)
